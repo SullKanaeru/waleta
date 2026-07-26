@@ -8,13 +8,13 @@ import (
 
 type EnvelopeRepository interface {
 	GetEnvelopes(userID string) ([]models.MasterEnvelope, error)
-	GetEnvelopeByID(id string) (*models.MasterEnvelope, error)
+	GetEnvelopeByID(id string, userID string) (*models.MasterEnvelope, error)
 	CreatePocket(pocket *models.Pocket) error
 	GetPocketByID(pocketID string, userID string) (*models.Pocket, error)
 	UpdatePocket(pocket *models.Pocket) error
 	DeletePocket(pocketID string, userID string) error
 	GetPocketsByMasterID(masterID string, userID string) ([]models.Pocket, error)
-	UpdateMasterAllocated(masterID string, delta float64) error
+	UpdateMasterAllocated(masterID string, userID string, delta float64) error
 	UpdatePocketBalance(pocketID string, newBalance float64) error
 	UpdatePocketBalanceDelta(pocketID string, delta float64) error
 	GetEnvelopeSources(userID string, masterID string) (map[string]float64, error)
@@ -30,14 +30,13 @@ func NewEnvelopeRepository(db *gorm.DB) EnvelopeRepository {
 
 func (r *envelopeRepo) GetEnvelopes(userID string) ([]models.MasterEnvelope, error) {
 	var envelopes []models.MasterEnvelope
-	// We might want to filter pockets by userID if there are multiple users
-	err := r.db.Preload("Pockets", "user_id = ?", userID).Find(&envelopes).Error
+	err := r.db.Where("user_id = ?", userID).Preload("Pockets", "user_id = ?", userID).Find(&envelopes).Error
 	return envelopes, err
 }
 
-func (r *envelopeRepo) GetEnvelopeByID(id string) (*models.MasterEnvelope, error) {
+func (r *envelopeRepo) GetEnvelopeByID(id string, userID string) (*models.MasterEnvelope, error) {
 	var envelope models.MasterEnvelope
-	err := r.db.Where("id = ?", id).First(&envelope).Error
+	err := r.db.Where("id = ? AND user_id = ?", id, userID).First(&envelope).Error
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +70,8 @@ func (r *envelopeRepo) GetPocketsByMasterID(masterID string, userID string) ([]m
 	return pockets, err
 }
 
-func (r *envelopeRepo) UpdateMasterAllocated(masterID string, delta float64) error {
-	return r.db.Model(&models.MasterEnvelope{}).Where("id = ?", masterID).
+func (r *envelopeRepo) UpdateMasterAllocated(masterID string, userID string, delta float64) error {
+	return r.db.Model(&models.MasterEnvelope{}).Where("id = ? AND user_id = ?", masterID, userID).
 		Update("total_allocated", gorm.Expr("total_allocated + ?", delta)).Error
 }
 

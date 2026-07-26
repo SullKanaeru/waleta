@@ -67,7 +67,7 @@ func (s *transactionService) RecordIncome(userID string, amount float64, account
 				}
 
 				if allocated > 0 {
-					s.envRepo.UpdateMasterAllocated(rule.MasterID, allocated)
+					s.envRepo.UpdateMasterAllocated(rule.MasterID, userID, allocated)
 					
 					// Create sweeping allocation sub-transaction
 					sweepTx := &models.Transaction{
@@ -129,11 +129,11 @@ func (s *transactionService) RecordExpense(userID string, amount float64, accoun
 		}
 		if pocketID != nil && *pocketID != "" {
 			if *pocketID == "kebutuhan" || *pocketID == "keinginan" || *pocketID == "tabungan" {
-				_ = s.envRepo.UpdateMasterAllocated(*pocketID, -amount)
+				_ = s.envRepo.UpdateMasterAllocated(*pocketID, userID, -amount)
 			} else {
 				_ = s.envRepo.UpdatePocketBalanceDelta(*pocketID, -amount)
 				if p, err := s.envRepo.GetPocketByID(*pocketID, userID); err == nil && p != nil {
-					_ = s.envRepo.UpdateMasterAllocated(p.MasterID, -amount)
+					_ = s.envRepo.UpdateMasterAllocated(p.MasterID, userID, -amount)
 				}
 			}
 		}
@@ -165,7 +165,7 @@ func (s *transactionService) AssignInboxTransaction(txID string, userID string, 
 	// 4. Update Pocket Balance (Deduct from Pocket)
 	s.envRepo.UpdatePocketBalanceDelta(pocketID, -tx.Amount)
 	if p, err := s.envRepo.GetPocketByID(pocketID, userID); err == nil && p != nil {
-		_ = s.envRepo.UpdateMasterAllocated(p.MasterID, -tx.Amount)
+		_ = s.envRepo.UpdateMasterAllocated(p.MasterID, userID, -tx.Amount)
 	}
 
 	// 5. Add Auto-Categorization Rule if requested
@@ -200,15 +200,14 @@ func (s *transactionService) DeleteTransactions(userID string, txIDs []string) e
 			}
 		}
 
-		// Revert Pocket
 		if tx.PocketID != nil && tx.Type == "EXPENSE" {
 			_ = s.envRepo.UpdatePocketBalanceDelta(*tx.PocketID, tx.Amount)
 			if p, err := s.envRepo.GetPocketByID(*tx.PocketID, userID); err == nil && p != nil {
-				_ = s.envRepo.UpdateMasterAllocated(p.MasterID, tx.Amount)
+				_ = s.envRepo.UpdateMasterAllocated(p.MasterID, userID, tx.Amount)
 			}
 		} else if tx.MasterID != nil && tx.Type == "EXPENSE" {
 			// For master envelope fallback
-			_ = s.envRepo.UpdateMasterAllocated(*tx.MasterID, tx.Amount)
+			_ = s.envRepo.UpdateMasterAllocated(*tx.MasterID, userID, tx.Amount)
 		}
 	}
 

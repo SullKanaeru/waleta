@@ -61,9 +61,12 @@ func (r *syncRepo) MergeInitialData(userID string, data *models.SyncData) error 
 
 		// 2. Upsert Master Envelopes
 		if len(data.MasterEnvelopes) > 0 {
+			for i := range data.MasterEnvelopes {
+				data.MasterEnvelopes[i].UserID = userID
+			}
 			if err := tx.Clauses(clause.OnConflict{
 				Columns:   []clause.Column{{Name: "id"}},
-				DoUpdates: clause.AssignmentColumns([]string{"total_allocated"}),
+				DoUpdates: clause.AssignmentColumns([]string{"total_allocated", "user_id"}),
 			}).Create(&data.MasterEnvelopes).Error; err != nil {
 				return err
 			}

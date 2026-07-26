@@ -100,7 +100,7 @@ func (h *EnvelopeHandler) AllocateFunds(c *fiber.Ctx) error {
 	// (Removed deduction of account balance since envelope allocation is virtual)
 
 	// 2. Update Master Envelope total_allocated
-	if err := h.envRepo.UpdateMasterAllocated(req.MasterID, req.Amount); err != nil {
+	if err := h.envRepo.UpdateMasterAllocated(req.MasterID, userID, req.Amount); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
