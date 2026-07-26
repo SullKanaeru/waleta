@@ -236,31 +236,24 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
   Future<bool> freshStart() async {
     final storage = ref.read(localStorageServiceProvider);
 
-    // Reset Accounts
-    final accounts = storage.getAccounts();
-    for (var a in accounts) {
-      a['balance'] = 0.0;
-    }
-    await storage.saveAccounts(accounts);
+    // Clear Accounts locally
+    await storage.saveAccounts([]);
 
-    // Reset Envelopes
+    // Reset Envelopes total_allocated to 0 locally
     final envs = storage.getEnvelopes();
     for (var e in envs) {
       e['total_allocated'] = 0.0;
     }
     await storage.saveEnvelopes(envs);
 
-    // Reset Pockets
-    final pockets = storage.getPockets();
-    for (var p in pockets) {
-      p['balance'] = 0.0;
-    }
-    await storage.savePockets(pockets);
+    // Clear Pockets locally
+    await storage.savePockets([]);
 
     if (!ref.read(authProvider).isLoggedIn) {
       ref.invalidateSelf();
       ref.invalidate(envelopesProvider);
       ref.invalidate(dashboardProvider);
+      ref.invalidate(transactionsProvider);
       return true;
     }
 
@@ -269,6 +262,7 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
       ref.invalidateSelf();
       ref.invalidate(envelopesProvider);
       ref.invalidate(dashboardProvider);
+      ref.invalidate(transactionsProvider);
       return true;
     }
     return false;

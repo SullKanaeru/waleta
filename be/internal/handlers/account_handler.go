@@ -121,5 +121,5 @@ func (h *AccountHandler) FreshStart(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(fiber.Map{"message": "Semua saldo berhasil di-nol-kan."})
+	return c.JSON(fiber.Map{"message": "Semua akun, dompet/saku, transaksi, dan alokasi berhasil dihapus dan dikosongkan."})
 }

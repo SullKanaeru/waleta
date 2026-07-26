@@ -46,22 +46,31 @@ func (r *accountRepo) UpdateBalance(id string, newBalance float64) error {
 }
 func (r *accountRepo) FreshStart(userID string) error {
 	tx := r.db.Begin()
-	
-	if err := tx.Model(&models.Account{}).Where("user_id = ?", userID).Update("balance", 0).Error; err != nil {
+
+	// 1. Delete transactions belonging to the user
+	if err := tx.Where("user_id = ?", userID).Delete(&models.Transaction{}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
-	if err := tx.Model(&models.MasterEnvelope{}).Where("1 = 1").Update("total_allocated", 0).Error; err != nil {
+
+	// 2. Delete pockets belonging to the user
+	if err := tx.Where("user_id = ?", userID).Delete(&models.Pocket{}).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
-	if err := tx.Model(&models.Pocket{}).Where("user_id = ?", userID).Update("balance", 0).Error; err != nil {
+
+	// 3. Reset total_allocated of master envelopes to 0 for the user
+	if err := tx.Model(&models.MasterEnvelope{}).Where("user_id = ?", userID).Update("total_allocated", 0).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-	
+
+	// 4. Delete accounts belonging to the user
+	if err := tx.Where("user_id = ?", userID).Delete(&models.Account{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	return tx.Commit().Error
 }
 

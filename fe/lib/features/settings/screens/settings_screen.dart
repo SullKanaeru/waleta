@@ -228,7 +228,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           title: const Text('Mulai Lembaran Baru?'),
           content: const Text(
-            'Semua saldo Rekening, Dompet, dan Saku Anda saat ini akan diatur menjadi Rp 0.\n\nRiwayat dan statistik transaksi Anda di bulan-bulan sebelumnya tetap utuh. Anda yakin ingin melanjutkan?',
+            'Semua data Rekening, Dompet/Saku, dan seluruh riwayat transaksi Anda akan DIHAPUS PERMANEN. Ini benar-benar membuat akun Anda bersih kembali seperti baru.\n\nApakah Anda yakin ingin melanjutkan?',
           ),
           actions: [
             TextButton(
