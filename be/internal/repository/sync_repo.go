@@ -39,6 +39,22 @@ func (r *syncRepo) MergeInitialData(userID string, data *models.SyncData) error 
 			}
 		}
 
+		// 0b. Pre-process to map IDs for Master Envelopes
+		envIdMap := make(map[string]string)
+		var existingEnvelopes []models.MasterEnvelope
+		if err := tx.Where("user_id = ?", userID).Find(&existingEnvelopes).Error; err == nil {
+			for _, ee := range existingEnvelopes {
+				for i := range data.MasterEnvelopes {
+					if data.MasterEnvelopes[i].Name == ee.Name && (ee.Name == "Kebutuhan" || ee.Name == "Keinginan" || ee.Name == "Tabungan") {
+						if data.MasterEnvelopes[i].ID != ee.ID {
+							envIdMap[data.MasterEnvelopes[i].ID] = ee.ID
+							data.MasterEnvelopes[i].ID = ee.ID
+						}
+					}
+				}
+			}
+		}
+
 		// Apply ID map to transactions
 		if len(idMap) > 0 {
 			for i := range data.Transactions {
@@ -46,6 +62,20 @@ func (r *syncRepo) MergeInitialData(userID string, data *models.SyncData) error 
 					if newID, ok := idMap[*data.Transactions[i].SourceAccountID]; ok {
 						data.Transactions[i].SourceAccountID = &newID
 					}
+				}
+				if data.Transactions[i].MasterID != nil {
+					if newID, ok := envIdMap[*data.Transactions[i].MasterID]; ok {
+						data.Transactions[i].MasterID = &newID
+					}
+				}
+			}
+		}
+
+		// Apply envIdMap to Pockets
+		if len(envIdMap) > 0 {
+			for i := range data.Pockets {
+				if newID, ok := envIdMap[data.Pockets[i].MasterID]; ok {
+					data.Pockets[i].MasterID = newID
 				}
 			}
 		}
