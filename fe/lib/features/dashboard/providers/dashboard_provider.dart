@@ -57,13 +57,13 @@ class DashboardNotifier extends AsyncNotifier<DashboardSummary?> {
         if (bal < 0) totalNegativePockets += bal.abs();
       }
       
-      final totalFunds = totalAccountFunds;
+      final sumAccount = totalAccountFunds;
       final unallocated = totalAccountFunds - totalEnvelopesAllocated - totalNegativePockets;
       final safeToSpend = unallocated.clamp(0.0, double.infinity);
 
       return DashboardSummary(
         safeToSpend: safeToSpend,
-        totalFunds: totalFunds,
+        totalFunds: totalAccountFunds,
         totalAllocated: totalEnvelopesAllocated,
         unallocated: unallocated,
       );

@@ -68,21 +68,69 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     );
   }
 
-  void _showAddTransactionSheet() {
+  void _showAddTransactionSheet({double? initialAmount, int? initialTab}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const QuickAddTransactionSheet(),
+      builder: (context) => QuickAddTransactionSheet(
+        initialAmount: initialAmount,
+        initialTab: initialTab,
+      ),
     );
   }
 
-  void _showScanSheet() {
-    context.push('/scan');
+  Future<void> _handleAmountResult(double amount) async {
+    final type = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.darkSurface
+              : AppColors.lightSurface,
+          title: const Text('Tipe Transaksi'),
+          content: Text(
+            'Apakah nominal Rp ${amount.toInt()} ini merupakan Pemasukan atau Pengeluaran?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, 0), // Pengeluaran
+              child: const Text('Pengeluaran', style: TextStyle(color: AppColors.error)),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, 1), // Pemasukan
+              child: const Text('Pemasukan', style: TextStyle(color: AppColors.primary)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (type != null && mounted) {
+      _showAddTransactionSheet(initialAmount: amount, initialTab: type);
+    }
   }
 
-  void _showCalculatorSheet() {
-    context.push('/calculator');
+  Future<void> _showScanSheet() async {
+    final result = await context.push('/scan');
+    if (result != null && mounted) {
+      if (result is double) {
+        await _handleAmountResult(result);
+      } else if (result is Map || result is Object) {
+        // Handle OCRResult object if it returns an object containing totalAmount
+        try {
+          final totalAmount = (result as dynamic).totalAmount as double;
+          await _handleAmountResult(totalAmount);
+        } catch (_) {}
+      }
+    }
+  }
+
+  Future<void> _showCalculatorSheet() async {
+    final result = await context.push('/calculator');
+    if (result != null && result is double && mounted) {
+      await _handleAmountResult(result);
+    }
   }
 
   @override

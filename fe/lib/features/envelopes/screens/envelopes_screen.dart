@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../providers/envelope_provider.dart';
 import '../models/envelope.dart';
 import '../../accounts/providers/accounts_provider.dart';
+import '../../dashboard/providers/dashboard_provider.dart';
 import '../../activity/providers/transactions_provider.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../widgets/allocate_funds_sheet.dart';
@@ -77,6 +78,7 @@ class EnvelopesScreen extends ConsumerWidget {
           enabled: true,
           child: _buildMasterContent(
             context,
+            ref,
             theme,
             [
               Envelope(
@@ -107,6 +109,7 @@ class EnvelopesScreen extends ConsumerWidget {
         error: (err, stack) => Center(child: Text('Error: $err')),
         data: (envelopesList) => _buildMasterContent(
           context,
+          ref,
           theme,
           envelopesList,
           allTxs,
@@ -133,6 +136,7 @@ class EnvelopesScreen extends ConsumerWidget {
 
   Widget _buildMasterContent(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     List<Envelope> envelopes,
     List<Transaction> allTxs, {
@@ -148,8 +152,14 @@ class EnvelopesScreen extends ConsumerWidget {
 
     final unallocatedDisplay = unallocatedBalance;
 
-    return ListView(
-      padding: const EdgeInsets.all(20),
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.read(accountsProvider.notifier).refresh();
+        ref.read(dashboardProvider.notifier).refresh();
+        ref.read(envelopesProvider.notifier).refresh();
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(20),
       children: [
         // Summary Card
         Container(
@@ -272,6 +282,7 @@ class EnvelopesScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 48),
       ],
+    ),
     );
   }
 

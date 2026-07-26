@@ -272,7 +272,7 @@ class EnvelopeDetailScreen extends ConsumerWidget {
             (t) =>
                 t.pocketId != null &&
                 kebutuhanPocketIds.contains(t.pocketId) &&
-                t.amount < 0,
+                t.type == 'EXPENSE',
           )
           .toList();
       double totalKebutuhan = 0;

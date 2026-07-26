@@ -28,9 +28,9 @@ def deploy():
         
     print("Extracting and running docker-compose...")
     commands = [
+        "docker rm -f waleta_api waleta_db || true",
         "rm -rf /home/developer/be",
         "unzip -o /home/developer/backend.zip -d /home/developer/be",
-        "cd /home/developer/be && docker compose down || true",
         "cd /home/developer/be && docker compose up -d --build"
     ]
     

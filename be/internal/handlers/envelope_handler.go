@@ -97,10 +97,7 @@ func (h *EnvelopeHandler) AllocateFunds(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Saldo rekening tidak mencukupi"})
 	}
 
-	// Deduct balance from account
-	if err := h.accRepo.UpdateBalance(req.AccountID, acc.Balance-req.Amount); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-	}
+	// (Removed deduction of account balance since envelope allocation is virtual)
 
 	// 2. Update Master Envelope total_allocated
 	if err := h.envRepo.UpdateMasterAllocated(req.MasterID, req.Amount); err != nil {

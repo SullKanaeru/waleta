@@ -68,6 +68,15 @@ class AuthNotifier extends Notifier<AuthState> {
       final response = await _api.get(ApiEndpoints.me);
       if (response.success && response.data != null) {
         final user = UserProfile.fromJson(response.data);
+
+        // Auto sync if not synced (in case previous sync failed due to invalid IDs)
+        try {
+          final storage = ref.read(localStorageServiceProvider);
+          if (!storage.isCloudSynced()) {
+            await ref.read(syncServiceProvider).initialMerge();
+          }
+        } catch (_) {}
+
         state = AuthState(isLoggedIn: true, isLoading: false, user: user);
       } else {
         // Token invalid/expired, clean up
@@ -96,12 +105,12 @@ class AuthNotifier extends Notifier<AuthState> {
         final userData = response.data['user'] as Map<String, dynamic>;
         final user = UserProfile.fromJson(userData);
 
-        state = AuthState(isLoggedIn: true, isLoading: false, user: user);
-
-        // Trigger initial merge if available
+        // Trigger initial merge if available BEFORE setting state to isLoggedIn=true
         try {
           await ref.read(syncServiceProvider).initialMerge();
         } catch (_) {}
+
+        state = AuthState(isLoggedIn: true, isLoading: false, user: user);
 
         return true;
       } else {

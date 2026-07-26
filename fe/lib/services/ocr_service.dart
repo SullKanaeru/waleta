@@ -170,18 +170,17 @@ class OCRService {
 
     for (final keyword in keywords) {
       final regex = RegExp(
-        // keyword, optional colon/equal, optional "Rp"/"Rp."/"IDR", then the number
         '$keyword'
         r'[\s:=]*'
-        r'(?:Rp\.?\s*|IDR\s*)?'
+        r'(?:R[pP]\.?\s*|IDR\s*)?'
         r'([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)',
         caseSensitive: false,
       );
 
-      final match = regex.firstMatch(normalized);
-      if (match != null) {
+      final matches = regex.allMatches(normalized);
+      for (final match in matches) {
         final parsed = _parseIndonesianNumber(match.group(1)!);
-        if (parsed != null && parsed >= 100) return parsed;
+        if (parsed != null && parsed >= 100 && parsed < 100000000) return parsed;
       }
     }
     return null;
@@ -196,7 +195,7 @@ class OCRService {
 
     // Also check for "Rp" followed by a number on keyword lines
     final rpNumberRegex = RegExp(
-      r'(?:Rp\.?\s*)([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)',
+      r'(?:R[pP]\.?\s*)([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)',
       caseSensitive: false,
     );
 
@@ -217,14 +216,14 @@ class OCRService {
       var match = rpNumberRegex.firstMatch(line);
       if (match != null) {
         final parsed = _parseIndonesianNumber(match.group(1)!);
-        if (parsed != null && parsed >= 100) return parsed;
+        if (parsed != null && parsed >= 100 && parsed < 100000000) return parsed;
       }
 
       // Try plain number at end of line
       match = plainNumberRegex.firstMatch(line);
       if (match != null) {
         final parsed = _parseIndonesianNumber(match.group(1)!);
-        if (parsed != null && parsed >= 100) return parsed;
+        if (parsed != null && parsed >= 100 && parsed < 100000000) return parsed;
       }
 
       // Sometimes the number is on the next line
@@ -234,7 +233,7 @@ class OCRService {
         match ??= plainNumberRegex.firstMatch(nextLine);
         if (match != null) {
           final parsed = _parseIndonesianNumber(match.group(1)!);
-          if (parsed != null && parsed >= 1000) return parsed;
+          if (parsed != null && parsed >= 1000 && parsed < 100000000) return parsed;
         }
       }
     }
@@ -243,13 +242,18 @@ class OCRService {
 
   /// Pass 3: Fallback — largest number >= 1000 in the full text
   double? _extractLargestNumber(String text) {
-    final numberRegex = RegExp(r'([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)');
+    final numberRegex = RegExp(r'\b([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)\b');
     final matches = numberRegex.allMatches(text);
 
     double largest = 0;
     for (final match in matches) {
-      final parsed = _parseIndonesianNumber(match.group(1)!);
-      if (parsed != null && parsed > largest) {
+      final raw = match.group(1)!;
+      // Skip strings that are too long without separators (like 16413520230802084636)
+      if (raw.length > 8 && !raw.contains('.') && !raw.contains(',')) continue;
+
+      final parsed = _parseIndonesianNumber(raw);
+      // Skip ridiculously large numbers (e.g. >= 100 million) for a typical receipt
+      if (parsed != null && parsed > largest && parsed < 100000000) {
         largest = parsed;
       }
     }
@@ -270,6 +274,11 @@ class OCRService {
   double? _parseIndonesianNumber(String input) {
     String s = input.trim();
     if (s.isEmpty) return null;
+
+    // Prevent phone numbers (e.g. 0812...) from being parsed as large amounts
+    if (s.startsWith('0') && s.length > 1 && !s.startsWith('0.') && !s.startsWith('0,')) {
+      return null;
+    }
 
     // Case 1: Has both dot and comma → determine which is thousands vs decimal
     if (s.contains('.') && s.contains(',')) {
@@ -321,6 +330,8 @@ class OCRService {
       RegExp(r'(\d{2}-\d{2}-\d{4})'),           // 25-07-2026
       RegExp(r'(\d{4}/\d{2}/\d{2})'),           // 2026/07/25
       RegExp(r'(\d{4}-\d{2}-\d{2})'),           // 2026-07-25
+      RegExp(r'(\d{1,2}\s+[a-zA-Z]{3,}\s+\d{4})', caseSensitive: false), // 31 Mar 2026, 12 Agustus 2023
+      RegExp(r'(\d{1,2}\s+[-/]\s+\d{1,2}\s+[-/]\s+\d{4})'), // 25 - 07 - 2026
       RegExp(r'(\d{2}/\d{2}/\d{2})\b'),         // 25/07/26
       RegExp(r'(\d{2}-\d{2}-\d{2})\b'),         // 25-07-26
     ];

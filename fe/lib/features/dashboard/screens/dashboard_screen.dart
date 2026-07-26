@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../../activity/providers/transactions_provider.dart';
 import '../../accounts/providers/accounts_provider.dart';
+import '../providers/dashboard_provider.dart';
+import '../../envelopes/providers/envelope_provider.dart';
 import '../../activity/widgets/edit_transaction_sheet.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -142,10 +144,10 @@ class DashboardScreen extends ConsumerWidget {
             .toList()
           ..sort((a, b) => b.date.compareTo(a.date));
     final totalExpense = monthTxs
-        .where((t) => t.amount < 0)
+        .where((t) => t.type == 'EXPENSE')
         .fold(0.0, (sum, t) => sum + t.amount);
     final totalIncome = monthTxs
-        .where((t) => t.amount >= 0)
+        .where((t) => t.type == 'INCOME')
         .fold(0.0, (sum, t) => sum + t.amount);
 
     final multiSelect = ref.watch(multiSelectProvider);
@@ -193,8 +195,15 @@ class DashboardScreen extends ConsumerWidget {
               ),
             )
           : null,
-      body: CustomScrollView(
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.read(transactionsProvider.notifier).refresh();
+          ref.read(accountsProvider.notifier).refresh();
+          ref.read(dashboardProvider.notifier).refresh();
+          ref.read(envelopesProvider.notifier).refresh();
+        },
+        child: CustomScrollView(
+          slivers: [
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,6 +314,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }
@@ -650,10 +660,10 @@ class DashboardScreen extends ConsumerWidget {
         final dateStr = entry.key;
         final dayTxs = entry.value;
         final dayExpense = dayTxs
-            .where((t) => t.amount < 0)
+            .where((t) => t.type == 'EXPENSE')
             .fold(0.0, (sum, t) => sum + t.amount);
         final dayIncome = dayTxs
-            .where((t) => t.amount >= 0)
+            .where((t) => t.type == 'INCOME')
             .fold(0.0, (sum, t) => sum + t.amount);
 
         String summaryText = '';
@@ -662,8 +672,11 @@ class DashboardScreen extends ConsumerWidget {
               '+${formatter.format(dayIncome)} / -${formatter.format(dayExpense.abs())}';
         } else if (dayExpense < 0) {
           summaryText = '-${formatter.format(dayExpense.abs())}';
-        } else {
+        } else if (dayIncome > 0) {
           summaryText = '+${formatter.format(dayIncome)}';
+        } else {
+          // Hanya ada ALLOCATION atau 0
+          summaryText = '';
         }
 
         return Column(
@@ -685,7 +698,10 @@ class DashboardScreen extends ConsumerWidget {
               ),
             ),
             ...dayTxs.map((tx) {
-              final isIncome = tx.amount >= 0;
+              final isIncome = tx.type == 'INCOME';
+              final isExpense = tx.type == 'EXPENSE';
+              final isAllocation = tx.type == 'ALLOCATION';
+              
               final multiSelect = ref.watch(multiSelectProvider);
               final isSelected = multiSelect.selectedIds.contains(tx.id);
 
@@ -729,16 +745,19 @@ class DashboardScreen extends ConsumerWidget {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color:
-                              (isIncome ? AppColors.primary : AppColors.error)
-                                  .withValues(alpha: 0.08),
+                          color: (isAllocation 
+                                  ? Colors.orange 
+                                  : (isIncome ? AppColors.primary : AppColors.error))
+                              .withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
-                          isIncome
-                              ? LucideIcons.arrowDownLeft
-                              : LucideIcons.shoppingBag,
-                          color: isIncome ? AppColors.primary : AppColors.error,
+                          isAllocation
+                              ? LucideIcons.arrowRightLeft
+                              : (isIncome ? LucideIcons.arrowDownLeft : LucideIcons.shoppingBag),
+                          color: isAllocation 
+                                  ? Colors.orange 
+                                  : (isIncome ? AppColors.primary : AppColors.error),
                           size: 16,
                         ),
                       ),
@@ -753,21 +772,25 @@ class DashboardScreen extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            Text('Rekening', style: theme.textTheme.labelSmall),
+                            Text(isAllocation ? 'Alokasi ke Amplop' : 'Rekening', style: theme.textTheme.labelSmall),
                           ],
                         ),
                       ),
                       _BlurrableText(
-                        text: isIncome
-                            ? '+${formatter.format(tx.amount)}'
-                            : '-${formatter.format(tx.amount.abs())}',
+                        text: isAllocation
+                            ? formatter.format(tx.amount)
+                            : (isIncome
+                                ? '+${formatter.format(tx.amount)}'
+                                : '-${formatter.format(tx.amount.abs())}'),
                         isBlurred: isBlurred,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
-                          color: isIncome
-                              ? AppColors.primary
-                              : theme.colorScheme.onSurface,
+                          color: isAllocation
+                              ? Colors.orange
+                              : (isIncome
+                                  ? AppColors.primary
+                                  : theme.colorScheme.onSurface),
                         ),
                       ),
                     ],

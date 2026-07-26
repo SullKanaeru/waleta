@@ -52,14 +52,12 @@ func (r *accountRepo) FreshStart(userID string) error {
 		return err
 	}
 	
-	if err := tx.Model(&models.MasterEnvelope{}).Where("user_id = ?", userID).Update("total_allocated", 0).Error; err != nil {
+	if err := tx.Model(&models.MasterEnvelope{}).Where("1 = 1").Update("total_allocated", 0).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 	
-	// Pockets don't have user_id directly, they belong to Envelope. We can do a subquery or join.
-	// UPDATE pockets SET balance = 0 WHERE envelope_id IN (SELECT id FROM envelopes WHERE user_id = ?)
-	if err := tx.Exec("UPDATE pockets SET balance = 0 WHERE envelope_id IN (SELECT id FROM envelopes WHERE user_id = ?)", userID).Error; err != nil {
+	if err := tx.Model(&models.Pocket{}).Where("user_id = ?", userID).Update("balance", 0).Error; err != nil {
 		tx.Rollback()
 		return err
 	}

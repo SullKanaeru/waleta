@@ -45,7 +45,14 @@ class _Category {
 
 // ─── Main Sheet Widget ──────────────────────────────────────────────────────
 class QuickAddTransactionSheet extends ConsumerStatefulWidget {
-  const QuickAddTransactionSheet({super.key});
+  final double? initialAmount;
+  final int? initialTab;
+
+  const QuickAddTransactionSheet({
+    super.key,
+    this.initialAmount,
+    this.initialTab,
+  });
 
   @override
   ConsumerState<QuickAddTransactionSheet> createState() =>
@@ -81,7 +88,22 @@ class _QuickAddTransactionSheetState
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: widget.initialTab ?? 0);
+    
+    if (widget.initialAmount != null) {
+      final formatted = _ThousandSeparatorFormatter().formatEditUpdate(
+        TextEditingValue.empty,
+        TextEditingValue(text: widget.initialAmount!.toInt().toString()),
+      ).text;
+      _amountController.text = formatted;
+    }
+
+    // Set initial category emoji based on tab
+    if (widget.initialTab == 1) {
+      _selectedCategory = 'Gaji';
+      _selectedCategoryEmoji = '💰';
+    }
+
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {

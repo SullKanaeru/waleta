@@ -19,6 +19,7 @@ class LocalStorageService {
     final prefs = await SharedPreferences.getInstance();
     final service = LocalStorageService(prefs);
     await service._ensureDeviceId();
+    await service._migrateUUIDs();
     return service;
   }
 
@@ -29,6 +30,83 @@ class LocalStorageService {
     }
     if (!_prefs.containsKey(_keyIsSynced)) {
       await _prefs.setBool(_keyIsSynced, false);
+    }
+  }
+
+  Future<void> _migrateUUIDs() async {
+    final accounts = getAccounts();
+    final envelopes = getEnvelopes();
+    final pockets = getPockets();
+    final txs = getTransactions();
+    
+    final idMap = <String, String>{};
+    
+    String getValidUUID(String oldId) {
+      if (RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$').hasMatch(oldId)) {
+        return oldId;
+      }
+      if (!idMap.containsKey(oldId)) {
+        idMap[oldId] = const Uuid().v4();
+      }
+      return idMap[oldId]!;
+    }
+
+    bool changed = false;
+
+    for (var a in accounts) {
+      final oldId = a['id'].toString();
+      final newId = getValidUUID(oldId);
+      if (oldId != newId) { a['id'] = newId; changed = true; }
+    }
+    
+    for (var e in envelopes) {
+      final oldId = e['id'].toString();
+      final newId = getValidUUID(oldId);
+      if (oldId != newId) { e['id'] = newId; changed = true; }
+    }
+    
+    for (var p in pockets) {
+      final oldId = p['id'].toString();
+      final newId = getValidUUID(oldId);
+      if (oldId != newId) { p['id'] = newId; changed = true; }
+      
+      final oldMaster = p['master_id']?.toString();
+      if (oldMaster != null) {
+        final newMaster = getValidUUID(oldMaster);
+        if (oldMaster != newMaster) { p['master_id'] = newMaster; changed = true; }
+      }
+    }
+    
+    for (var t in txs) {
+      final oldId = t['id'].toString();
+      final newId = getValidUUID(oldId);
+      if (oldId != newId) { t['id'] = newId; changed = true; }
+      
+      final oldAcc = t['account_id']?.toString();
+      if (oldAcc != null) {
+        t['account_id'] = getValidUUID(oldAcc);
+        changed = true;
+      }
+      
+      final oldPoc = t['pocket_id']?.toString();
+      if (oldPoc != null) {
+        t['pocket_id'] = getValidUUID(oldPoc);
+        changed = true;
+      }
+      
+      final oldMas = t['master_id']?.toString();
+      if (oldMas != null) {
+        t['master_id'] = getValidUUID(oldMas);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      await saveAccounts(accounts);
+      await saveEnvelopes(envelopes);
+      await savePockets(pockets);
+      await saveTransactions(txs);
+      await setCloudSynced(false); // Force resync since IDs changed
     }
   }
 
@@ -64,11 +142,11 @@ class LocalStorageService {
   List<Map<String, dynamic>> getEnvelopes() {
     final str = _prefs.getString(_keyEnvelopes);
     if (str == null) {
-      // Default offline master envelopes
+      // Default offline master envelopes (now using UUIDs, but if missing, migration will handle it)
       return [
-        {'id': 'kebutuhan', 'name': 'Kebutuhan', 'total_allocated': 0.0},
-        {'id': 'keinginan', 'name': 'Keinginan', 'total_allocated': 0.0},
-        {'id': 'tabungan', 'name': 'Tabungan', 'total_allocated': 0.0},
+        {'id': const Uuid().v4(), 'name': 'Kebutuhan', 'total_allocated': 0.0},
+        {'id': const Uuid().v4(), 'name': 'Keinginan', 'total_allocated': 0.0},
+        {'id': const Uuid().v4(), 'name': 'Tabungan', 'total_allocated': 0.0},
       ];
     }
     try {
