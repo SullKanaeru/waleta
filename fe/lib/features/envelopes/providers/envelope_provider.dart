@@ -27,15 +27,16 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
 
       return rawEnvelopes.map((data) {
         final id = data['id'] ?? '';
+        final name = (data['name'] ?? '').toString().toLowerCase();
         IconData envIcon = LucideIcons.folder;
         Color envColor = AppColors.primary;
-        if (id == 'kebutuhan') {
+        if (name == 'kebutuhan') {
           envIcon = LucideIcons.shoppingBag;
           envColor = AppColors.primary;
-        } else if (id == 'keinginan') {
+        } else if (name == 'keinginan') {
           envIcon = LucideIcons.coffee;
           envColor = AppColors.accentAmber;
-        } else if (id == 'tabungan') {
+        } else if (name == 'tabungan') {
           envIcon = LucideIcons.wallet;
           envColor = Colors.teal;
         }
@@ -75,16 +76,18 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
 
         final id = data['id'] ?? '';
 
-        // Dynamic icons & colors based on Envelope ID
+        final name = (data['name'] ?? '').toString().toLowerCase();
+
+        // Dynamic icons & colors based on Envelope name
         IconData envIcon = LucideIcons.folder;
         Color envColor = AppColors.primary;
-        if (id == 'kebutuhan') {
+        if (name == 'kebutuhan') {
           envIcon = LucideIcons.shoppingBag;
           envColor = AppColors.primary;
-        } else if (id == 'keinginan') {
+        } else if (name == 'keinginan') {
           envIcon = LucideIcons.coffee;
           envColor = AppColors.accentAmber;
-        } else if (id == 'tabungan') {
+        } else if (name == 'tabungan') {
           envIcon = LucideIcons.wallet;
           envColor = Colors.teal;
         }

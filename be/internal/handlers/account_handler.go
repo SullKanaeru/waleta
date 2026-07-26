@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"strings"
 	"waleta-be/internal/models"
 	"waleta-be/internal/repository"
 
@@ -20,31 +19,12 @@ func NewAccountHandler(accRepo repository.AccountRepository, txRepo repository.T
 
 func (h *AccountHandler) GetAccounts(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
-	
+
 	accounts, err := h.accRepo.GetAccountsByUserID(userID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	
-	hasCash := false
-	for _, acc := range accounts {
-		nameLower := strings.ToLower(acc.Name)
-		if strings.Contains(nameLower, "tunai") || strings.Contains(nameLower, "cash") || strings.Contains(nameLower, "dompet") || strings.Contains(nameLower, "saku") || strings.Contains(nameLower, "gopay") || strings.Contains(nameLower, "ovo") || strings.Contains(nameLower, "dana") || strings.Contains(nameLower, "shopee") {
-			hasCash = true
-			break
-		}
-	}
-	if !hasCash {
-		defaultCash := &models.Account{
-			UserID:  userID,
-			Name:    "Dompet Tunai",
-			Balance: 0,
-		}
-		if err := h.accRepo.CreateAccount(defaultCash); err == nil {
-			accounts = append([]models.Account{*defaultCash}, accounts...)
-		}
-	}
-	
+
 	return c.JSON(accounts)
 }
 
@@ -59,13 +39,13 @@ func (h *AccountHandler) CreateAccount(c *fiber.Ctx) error {
 	if account.Name == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Nama rekening tidak boleh kosong"})
 	}
-	
+
 	account.UserID = userID
-	
+
 	if err := h.accRepo.CreateAccount(&account); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	
+
 	return c.Status(fiber.StatusCreated).JSON(account)
 }
 
@@ -101,7 +81,7 @@ func (h *AccountHandler) Reconcile(c *fiber.Ctx) error {
 		if absDiff < 0 {
 			absDiff = -absDiff
 		}
-		
+
 		tx := &models.Transaction{
 			UserID:          userID,
 			Type:            txType,

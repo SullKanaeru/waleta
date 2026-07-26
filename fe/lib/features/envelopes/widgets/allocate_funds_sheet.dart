@@ -110,11 +110,19 @@ class _AllocateFundsSheetState extends ConsumerState<AllocateFundsSheet> {
     bool allSuccess = true;
     final notifier = ref.read(envelopesProvider.notifier);
 
+    final envelopesList = ref.read(envelopesProvider).value ?? [];
+    String getMasterId(String name) {
+      for (var e in envelopesList) {
+        if (e.name.toLowerCase() == name.toLowerCase()) return e.id;
+      }
+      return name;
+    }
+
     // Allocate Kebutuhan
     if (amtKeb > 0) {
       final success = await notifier.allocateFunds(
         _selectedAccount!.id,
-        'kebutuhan',
+        getMasterId('kebutuhan'),
         null,
         amtKeb,
       );
@@ -125,7 +133,7 @@ class _AllocateFundsSheetState extends ConsumerState<AllocateFundsSheet> {
     if (amtKei > 0) {
       final success = await notifier.allocateFunds(
         _selectedAccount!.id,
-        'keinginan',
+        getMasterId('keinginan'),
         null,
         amtKei,
       );
@@ -136,7 +144,7 @@ class _AllocateFundsSheetState extends ConsumerState<AllocateFundsSheet> {
     if (amtTab > 0) {
       final success = await notifier.allocateFunds(
         _selectedAccount!.id,
-        'tabungan',
+        getMasterId('tabungan'),
         null,
         amtTab,
       );

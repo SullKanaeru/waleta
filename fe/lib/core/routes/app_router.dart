@@ -129,16 +129,10 @@ final routerProvider = Provider<GoRouter>((ref) {
 
           envelope ??= Envelope(
             id: id,
-            name: id == 'kebutuhan'
-                ? 'Kebutuhan'
-                : (id == 'keinginan' ? 'Keinginan' : 'Tabungan'),
+            name: 'Dompet',
             allocatedAmount: 0,
-            iconData: id == 'kebutuhan'
-                ? LucideIcons.shoppingBag
-                : (id == 'keinginan' ? LucideIcons.coffee : LucideIcons.wallet),
-            color: id == 'kebutuhan'
-                ? AppColors.primary
-                : (id == 'keinginan' ? AppColors.accentAmber : Colors.teal),
+            iconData: LucideIcons.wallet,
+            color: AppColors.primary,
           );
 
           return EnvelopeDetailScreen(envelope: envelope);

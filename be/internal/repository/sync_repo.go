@@ -21,9 +21,34 @@ func NewSyncRepository(db *gorm.DB) SyncRepository {
 	return &syncRepo{db: db}
 }
 
-// MergeInitialData executes an atomic database transaction to merge local SQLite data into PostgreSQL
 func (r *syncRepo) MergeInitialData(userID string, data *models.SyncData) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
+		// 0. Pre-process to map IDs for default "Dompet Tunai"
+		idMap := make(map[string]string)
+		var existingAccounts []models.Account
+		if err := tx.Where("user_id = ?", userID).Find(&existingAccounts).Error; err == nil {
+			for _, ea := range existingAccounts {
+				for i := range data.Accounts {
+					if data.Accounts[i].Name == ea.Name && (ea.Name == "Dompet Tunai" || ea.Name == "Cash" || ea.Name == "Saku") {
+						if data.Accounts[i].ID != ea.ID {
+							idMap[data.Accounts[i].ID] = ea.ID
+							data.Accounts[i].ID = ea.ID
+						}
+					}
+				}
+			}
+		}
+
+		// Apply ID map to transactions
+		if len(idMap) > 0 {
+			for i := range data.Transactions {
+				if data.Transactions[i].SourceAccountID != nil {
+					if newID, ok := idMap[*data.Transactions[i].SourceAccountID]; ok {
+						data.Transactions[i].SourceAccountID = &newID
+					}
+				}
+			}
+		}
 		// 1. Upsert Accounts
 		if len(data.Accounts) > 0 {
 			for i := range data.Accounts {

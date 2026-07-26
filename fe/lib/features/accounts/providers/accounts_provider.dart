@@ -55,7 +55,7 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
       if (!raw.any((e) => _isCashName((e['name'] ?? '').toString()))) {
         raw.insert(0, {
           'id': 'a_default_cash',
-          'name': 'Dompet Tunai',
+          'name': 'Tunai',
           'balance': 0.0,
         });
         await storage.saveAccounts(raw);
@@ -109,19 +109,8 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
       final accounts = list
           .map((e) => Account.fromJson(e as Map<String, dynamic>))
           .toList();
-      if (!accounts.any((a) => _isCashName(a.name))) {
-        await _api.post(
-          ApiEndpoints.accounts,
-          body: {'name': 'Dompet Tunai', 'balance': 0.0},
-        );
-        final resTryAgain = await _api.get(ApiEndpoints.accounts);
-        if (resTryAgain.success && resTryAgain.data != null) {
-          final list2 = resTryAgain.data as List;
-          return list2
-              .map((e) => Account.fromJson(e as Map<String, dynamic>))
-              .toList();
-        }
-      }
+      final storage = ref.read(localStorageServiceProvider);
+      await storage.saveAccounts(list.map((e) => e as Map<String, dynamic>).toList());
       return accounts;
     }
     return [];
@@ -202,7 +191,8 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
           final masterId = p['master_id'];
           for (var env in envelopes) {
             if (env['id'] == masterId) {
-              env['allocatedAmount'] = (env['allocatedAmount'] ?? 0).toDouble() + absDiff;
+              env['allocatedAmount'] =
+                  (env['allocatedAmount'] ?? 0).toDouble() + absDiff;
               envelopesChanged = true;
               break;
             }
@@ -245,7 +235,7 @@ class AccountsNotifier extends AsyncNotifier<List<Account>> {
 
   Future<bool> freshStart() async {
     final storage = ref.read(localStorageServiceProvider);
-    
+
     // Reset Accounts
     final accounts = storage.getAccounts();
     for (var a in accounts) {
