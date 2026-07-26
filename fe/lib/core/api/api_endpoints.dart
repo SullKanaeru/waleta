@@ -1,7 +1,6 @@
 class ApiEndpoints {
   // Base URL - change for production
-  static const String baseUrl = 'http://10.0.2.2:3000/api/v1'; // Android Emulator
-  // static const String baseUrl = 'http://127.0.0.1:3000/api/v1'; // Desktop/Web
+  static const String baseUrl = 'http://76.13.17.86:3000/api/v1'; // VPS Server
 
   // Auth
   static const String register = '/auth/register';

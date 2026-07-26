@@ -1,18 +1,34 @@
-name: waleta-be
+version: '3.8'
 
 services:
   db:
     image: postgres:15-alpine
-    container_name: waleta-db
+    container_name: waleta_db
+    restart: always
     environment:
-      POSTGRES_USER: waleta
+      POSTGRES_USER: waleta_user
       POSTGRES_PASSWORD: waleta_password
-      POSTGRES_DB: waleta
+      POSTGRES_DB: waleta_db
     ports:
-      - "5440:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
+
+  api:
+    build: .
+    container_name: waleta_api
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: waleta_user
+      DB_PASSWORD: waleta_password
+      DB_NAME: waleta_db
+      DB_SSLMODE: disable
+    depends_on:
+      - db
 
 volumes:
   postgres_data:
