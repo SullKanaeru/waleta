@@ -46,7 +46,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             ),
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 2),
-            backgroundColor: AppColors.primary,
+            backgroundColor: AppColors.primaryDark,
           ),
         );
       },
@@ -79,6 +79,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: widget.navigationShell,
@@ -89,10 +90,10 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
           Container(
             height: 64 + MediaQuery.of(context).padding.bottom,
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
+              color: isDark ? AppColors.darkSurface : AppColors.lightSurface,
               border: Border(
                 top: BorderSide(
-                  color: theme.dividerColor,
+                  color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
                   width: 1,
                 ),
               ),
@@ -103,11 +104,11 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildNavItem(0, LucideIcons.home, 'Beranda', theme),
-                _buildNavItem(1, LucideIcons.wallet, 'Dompet', theme),
+                _buildNavItem(0, LucideIcons.home, 'Beranda', isDark),
+                _buildNavItem(1, LucideIcons.wallet, 'Dompet', isDark),
                 const SizedBox(width: 56),
-                _buildNavItem(2, LucideIcons.coins, 'Aset', theme),
-                _buildNavItem(3, LucideIcons.pieChart, 'Statistik', theme),
+                _buildNavItem(2, LucideIcons.coins, 'Aset', isDark),
+                _buildNavItem(3, LucideIcons.pieChart, 'Statistik', isDark),
               ],
             ),
           ),
@@ -119,12 +120,17 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [AppColors.primaryLight, AppColors.primaryDark],
+                  ),
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 12,
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      blurRadius: 16,
+                      spreadRadius: 0,
                       offset: const Offset(0, 4),
                     ),
                   ],
@@ -146,9 +152,14 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     int index,
     IconData icon,
     String label,
-    ThemeData theme,
+    bool isDark,
   ) {
     final isSelected = widget.navigationShell.currentIndex == index;
+    final selectedColor = AppColors.primary;
+    final unselectedColor = isDark
+        ? AppColors.darkTextSecondary
+        : AppColors.lightTextSecondary;
+
     return Expanded(
       child: InkWell(
         onTap: () => _onTap(index),
@@ -159,18 +170,28 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                color: isSelected ? AppColors.primary : theme.disabledColor,
-                size: 22,
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withValues(alpha: 0.12)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: isSelected ? selectedColor : unselectedColor,
+                  size: 22,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppColors.primary : theme.disabledColor,
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? selectedColor : unselectedColor,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ],

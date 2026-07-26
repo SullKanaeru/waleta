@@ -59,7 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.15),
+                color: AppColors.primary.withValues(alpha: 0.12),
               ),
             ),
           ).animate().fadeIn(duration: 800.ms).scale(begin: const Offset(0.8, 0.8)),
@@ -71,7 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.accent.withValues(alpha: 0.15),
+                color: AppColors.accentGold.withValues(alpha: 0.10),
               ),
             ),
           ).animate().fadeIn(duration: 800.ms, delay: 200.ms).scale(begin: const Offset(0.8, 0.8)),
