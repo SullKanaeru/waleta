@@ -39,36 +39,40 @@ class _AddIncomeSheetState extends ConsumerState<AddIncomeSheet> {
     }
     if (_selectedAccount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Silakan pilih rekening tujuan terlebih dahulu')),
+        const SnackBar(
+          content: Text('Silakan pilih rekening tujuan terlebih dahulu'),
+        ),
       );
       return;
     }
-    
+
     setState(() => _isSubmitting = true);
-    
-    final success = await ref.read(transactionsProvider.notifier).addIncome(
-      amount,
-      _selectedAccount!.id,
-      'Pemasukan Manual',
-      'Pemasukan',
-    );
-    
+
+    final success = await ref
+        .read(transactionsProvider.notifier)
+        .addIncome(
+          amount,
+          _selectedAccount!.id,
+          'Pemasukan Manual',
+          'Pemasukan',
+        );
+
     setState(() => _isSubmitting = false);
-    
+
     if (!mounted) return;
-    
+
     if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gagal mencatat uang masuk')),
       );
       return;
     }
-    
+
     // Refresh dashboard to get updated total/safe-to-spend
     ref.read(dashboardProvider.notifier).refresh();
 
     Navigator.pop(context);
-    
+
     // Simulate auto-sweeping dialog
     showDialog(
       context: context,
@@ -76,7 +80,7 @@ class _AddIncomeSheetState extends ConsumerState<AddIncomeSheet> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Row(
           children: [
-            Icon(LucideIcons.sparkles, color: AppColors.accent),
+            Icon(LucideIcons.sparkles, color: AppColors.accentAmber),
             const SizedBox(width: 8),
             const Text('Auto-Sweeping Aktif!'),
           ],
@@ -122,7 +126,10 @@ class _AddIncomeSheetState extends ConsumerState<AddIncomeSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Catat Uang Masuk', style: theme.textTheme.titleLarge),
-              IconButton(icon: const Icon(LucideIcons.x), onPressed: () => Navigator.pop(context)),
+              IconButton(
+                icon: const Icon(LucideIcons.x),
+                onPressed: () => Navigator.pop(context),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -140,18 +147,13 @@ class _AddIncomeSheetState extends ConsumerState<AddIncomeSheet> {
           const SizedBox(height: 24),
           Text('Pilih Rekening Tujuan:', style: theme.textTheme.titleMedium),
           const SizedBox(height: 12),
-          
+
           DropdownButtonFormField<Account>(
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-            ),
+            decoration: const InputDecoration(border: OutlineInputBorder()),
             hint: const Text('Pilih Rekening'),
             initialValue: _selectedAccount,
             items: accounts.map((acc) {
-              return DropdownMenuItem(
-                value: acc,
-                child: Text(acc.name),
-              );
+              return DropdownMenuItem(value: acc, child: Text(acc.name));
             }).toList(),
             onChanged: (val) {
               setState(() {
@@ -159,7 +161,7 @@ class _AddIncomeSheetState extends ConsumerState<AddIncomeSheet> {
               });
             },
           ),
-          
+
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
@@ -171,7 +173,14 @@ class _AddIncomeSheetState extends ConsumerState<AddIncomeSheet> {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: _isSubmitting
-                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : const Text('Simpan & Otomatisasikan'),
             ),
           ),

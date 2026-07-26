@@ -45,18 +45,28 @@ class NotificationSheet extends ConsumerWidget {
                 error: (err, stack) => Center(child: Text('Error: $err')),
                 data: (notifications) {
                   if (notifications.isEmpty) {
-                    return const Center(child: Padding(
-                      padding: EdgeInsets.all(24.0),
-                      child: Text('Tidak ada notifikasi.'),
-                    ));
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: Text('Tidak ada notifikasi.'),
+                      ),
+                    );
                   }
                   return ListView(
                     shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 8,
+                    ),
                     children: notifications.map((notif) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
-                        child: _buildNotificationItem(context, theme, notif, ref),
+                        child: _buildNotificationItem(
+                          context,
+                          theme,
+                          notif,
+                          ref,
+                        ),
                       );
                     }).toList(),
                   );
@@ -70,10 +80,15 @@ class NotificationSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildNotificationItem(BuildContext context, ThemeData theme, NotificationModel notif, WidgetRef ref) {
+  Widget _buildNotificationItem(
+    BuildContext context,
+    ThemeData theme,
+    NotificationModel notif,
+    WidgetRef ref,
+  ) {
     Color iconColor;
     IconData icon;
-    
+
     switch (notif.type) {
       case 'FRUGALITY_TRIGGER':
         iconColor = AppColors.error;
@@ -84,16 +99,22 @@ class NotificationSheet extends ConsumerWidget {
         icon = LucideIcons.info;
         break;
       default:
-        iconColor = AppColors.accent;
+        iconColor = AppColors.accentAmber;
         icon = LucideIcons.bell;
     }
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: notif.isRead ? theme.colorScheme.surface : iconColor.withValues(alpha: 0.05),
+        color: notif.isRead
+            ? theme.colorScheme.surface
+            : iconColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: notif.isRead ? theme.dividerColor.withValues(alpha: 0.1) : iconColor.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: notif.isRead
+              ? theme.dividerColor.withValues(alpha: 0.1)
+              : iconColor.withValues(alpha: 0.2),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +132,13 @@ class NotificationSheet extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(notif.title, style: theme.textTheme.titleLarge?.copyWith(fontSize: 14, color: notif.isRead ? null : iconColor)),
+                Text(
+                  notif.title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontSize: 14,
+                    color: notif.isRead ? null : iconColor,
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   notif.message,
@@ -121,7 +148,9 @@ class NotificationSheet extends ConsumerWidget {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: () {
-                      ref.read(notificationsProvider.notifier).markAsRead(notif.id);
+                      ref
+                          .read(notificationsProvider.notifier)
+                          .markAsRead(notif.id);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: iconColor,

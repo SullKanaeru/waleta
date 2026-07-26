@@ -156,7 +156,7 @@ class EnvelopesScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.primaryVariant],
+              colors: [AppColors.primary, AppColors.primary],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),

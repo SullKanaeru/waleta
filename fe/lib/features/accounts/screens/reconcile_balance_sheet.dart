@@ -150,7 +150,7 @@ class _ReconcileBalanceSheetState extends ConsumerState<ReconcileBalanceSheet> {
                 color: _difference == 0
                     ? Colors.grey.withValues(alpha: 0.1)
                     : _difference > 0
-                    ? AppColors.accent.withValues(alpha: 0.1)
+                    ? AppColors.accentAmber.withValues(alpha: 0.1)
                     : AppColors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -163,7 +163,7 @@ class _ReconcileBalanceSheetState extends ConsumerState<ReconcileBalanceSheet> {
                     color: _difference == 0
                         ? Colors.grey
                         : _difference > 0
-                        ? AppColors.accent
+                        ? AppColors.accentAmber
                         : AppColors.error,
                   ),
                   const SizedBox(width: 12),

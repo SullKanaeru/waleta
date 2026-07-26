@@ -308,7 +308,7 @@ class _AllocateFundsSheetState extends ConsumerState<AllocateFundsSheet> {
               Text(
                 'Belum Dialokasikan: ${formatter.format(balance)}',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.accent,
+                  color: AppColors.accentAmber,
                 ),
               ),
             ],
@@ -391,7 +391,7 @@ class _AllocateFundsSheetState extends ConsumerState<AllocateFundsSheet> {
                 formatter: formatter,
                 label: 'Keinginan',
                 icon: LucideIcons.coffee,
-                color: AppColors.accent,
+                color: AppColors.accentAmber,
                 controller: _keiController,
                 calculatedValue: _amountKei,
                 sisaAmount: sisaKei,

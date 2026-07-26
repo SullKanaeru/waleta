@@ -48,7 +48,7 @@ class _CreatePocketSheetState extends ConsumerState<CreatePocketSheet> {
 
   final List<Color> _colors = [
     AppColors.primary,
-    AppColors.accent,
+    AppColors.accentAmber,
     AppColors.error,
     AppColors.warning,
     Colors.teal,
@@ -72,7 +72,10 @@ class _CreatePocketSheetState extends ConsumerState<CreatePocketSheet> {
             .toString();
       }
       final double amt = widget.existingPocket!.allocatedAmount;
-      _amountController.text = NumberFormat('#,###', 'id_ID').format(amt.toInt());
+      _amountController.text = NumberFormat(
+        '#,###',
+        'id_ID',
+      ).format(amt.toInt());
     } else {
       if (widget.masterEnvelope.id == 'keinginan') {
         _selectedStsMode = StsMode.lumpSum;
@@ -123,9 +126,7 @@ class _CreatePocketSheetState extends ConsumerState<CreatePocketSheet> {
       setState(() => _isSubmitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Nominal tidak valid atau melebihi batas alokasi',
-          ),
+          content: Text('Nominal tidak valid atau melebihi batas alokasi'),
         ),
       );
       return;
@@ -147,7 +148,6 @@ class _CreatePocketSheetState extends ConsumerState<CreatePocketSheet> {
           .read(envelopesProvider.notifier)
           .updatePocket(updated);
     } else {
-
       final iconName = getIconName(_selectedIcon);
       final colorName = getColorName(_selectedColor);
 

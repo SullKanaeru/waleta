@@ -18,7 +18,11 @@ class RolloverDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -29,15 +33,19 @@ class RolloverDialog extends StatelessWidget {
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(32),
           border: Border.all(
-            color: isSurplus ? AppColors.accent.withValues(alpha: 0.5) : AppColors.error.withValues(alpha: 0.5),
+            color: isSurplus
+                ? AppColors.accentAmber.withValues(alpha: 0.5)
+                : AppColors.error.withValues(alpha: 0.5),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: isSurplus ? AppColors.accent.withValues(alpha: 0.2) : AppColors.error.withValues(alpha: 0.2),
+              color: isSurplus
+                  ? AppColors.accentAmber.withValues(alpha: 0.2)
+                  : AppColors.error.withValues(alpha: 0.2),
               blurRadius: 24,
               spreadRadius: 8,
-            )
+            ),
           ],
         ),
         child: Column(
@@ -47,27 +55,29 @@ class RolloverDialog extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isSurplus ? AppColors.accent.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1),
+                color: isSurplus
+                    ? AppColors.accentAmber.withValues(alpha: 0.1)
+                    : AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 isSurplus ? LucideIcons.partyPopper : LucideIcons.alertTriangle,
                 size: 48,
-                color: isSurplus ? AppColors.accent : AppColors.error,
+                color: isSurplus ? AppColors.accentAmber : AppColors.error,
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Title
             Text(
               isSurplus ? 'Selebrasi Penghematan!' : 'Evaluasi Amplop',
               style: theme.textTheme.displayMedium?.copyWith(
                 fontSize: 24,
-                color: isSurplus ? AppColors.accent : AppColors.error,
+                color: isSurplus ? AppColors.accentAmber : AppColors.error,
               ),
             ),
             const SizedBox(height: 12),
-            
+
             // Description
             Text(
               isSurplus
@@ -85,7 +95,7 @@ class RolloverDialog extends StatelessWidget {
                 title: 'Investasikan',
                 subtitle: 'Pindahkan ke Tabungan Darurat',
                 icon: LucideIcons.trendingUp,
-                color: AppColors.accent,
+                color: AppColors.accentAmber,
                 isPrimary: true,
               ),
               const SizedBox(height: 12),
@@ -140,13 +150,15 @@ class RolloverDialog extends StatelessWidget {
     required bool isPrimary,
   }) {
     final theme = Theme.of(context);
-    
+
     return GestureDetector(
       onTap: () {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Keputusan diterapkan! Mutasi ${isSurplus ? "reward" : "bailout"} sedang diproses.'),
+            content: Text(
+              'Keputusan diterapkan! Mutasi ${isSurplus ? "reward" : "bailout"} sedang diproses.',
+            ),
             backgroundColor: color,
           ),
         );
@@ -154,10 +166,14 @@ class RolloverDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isPrimary ? color.withValues(alpha: 0.1) : theme.colorScheme.surface,
+          color: isPrimary
+              ? color.withValues(alpha: 0.1)
+              : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isPrimary ? color : theme.dividerColor.withValues(alpha: 0.1),
+            color: isPrimary
+                ? color
+                : theme.dividerColor.withValues(alpha: 0.1),
             width: isPrimary ? 2 : 1,
           ),
         ),
@@ -174,7 +190,9 @@ class RolloverDialog extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: isPrimary ? color : theme.textTheme.bodyLarge?.color,
+                      color: isPrimary
+                          ? color
+                          : theme.textTheme.bodyLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 4),

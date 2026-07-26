@@ -20,17 +20,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authState = ref.watch(authProvider);
-    final userName = (authState.user?.name != null && authState.user!.name.isNotEmpty)
+    final userName =
+        (authState.user?.name != null && authState.user!.name.isNotEmpty)
         ? authState.user!.name
         : 'Alex';
     final initial = userName.isNotEmpty ? userName[0].toUpperCase() : 'A';
     final userEmail = authState.user?.email ?? 'alex@example.com';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil & Jurnal'),
-        centerTitle: false,
-      ),
+      appBar: AppBar(title: const Text('Profil & Jurnal'), centerTitle: false),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
@@ -53,19 +51,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildUserInfo(ThemeData theme, String name, String email, String initial) {
+  Widget _buildUserInfo(
+    ThemeData theme,
+    String name,
+    String email,
+    String initial,
+  ) {
     return Row(
       children: [
         CircleAvatar(
           radius: 36,
           backgroundColor: AppColors.primary,
-          child: Text(initial, style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold)),
+          child: Text(
+            initial,
+            style: const TextStyle(
+              fontSize: 28,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         const SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(name, style: theme.textTheme.displayMedium?.copyWith(fontSize: 24)),
+            Text(
+              name,
+              style: theme.textTheme.displayMedium?.copyWith(fontSize: 24),
+            ),
             const SizedBox(height: 4),
             Text(email, style: theme.textTheme.bodyMedium),
           ],
@@ -127,7 +140,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(LucideIcons.fingerprint, color: AppColors.primary),
+              child: const Icon(
+                LucideIcons.fingerprint,
+                color: AppColors.primary,
+              ),
             ),
           ),
           Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05)),
@@ -138,10 +154,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.1),
+                color: AppColors.accentAmber.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(LucideIcons.smartphone, color: AppColors.accent),
+              child: const Icon(
+                LucideIcons.smartphone,
+                color: AppColors.accentAmber,
+              ),
             ),
             onTap: () {},
           ),
@@ -171,14 +190,14 @@ class _RemorseItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     Color statusColor;
     IconData statusIcon;
     String statusText;
 
     switch (status) {
       case RemorseStatus.satisfied:
-        statusColor = AppColors.accent;
+        statusColor = AppColors.accentAmber;
         statusIcon = LucideIcons.smile;
         statusText = 'Puas';
         break;
@@ -211,7 +230,10 @@ class _RemorseItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.titleLarge?.copyWith(fontSize: 16)),
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(fontSize: 16),
+                ),
                 const SizedBox(height: 4),
                 Text('$date • $amount', style: theme.textTheme.bodyMedium),
               ],
@@ -231,7 +253,10 @@ class _RemorseItem extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   statusText,
-                  style: theme.textTheme.labelLarge?.copyWith(color: statusColor, fontSize: 12),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: statusColor,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),

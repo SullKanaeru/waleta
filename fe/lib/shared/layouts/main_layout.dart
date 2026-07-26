@@ -6,6 +6,8 @@ import '../../core/utils/shake_detector.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/activity/widgets/quick_add_transaction_sheet.dart';
+import '../../features/activity/widgets/calculator_sheet.dart';
+import '../widgets/speed_dial_fab.dart';
 
 class MainLayout extends ConsumerStatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -67,12 +69,25 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     );
   }
 
-  void _showAddTransactionSheet(BuildContext context) {
+  void _showAddTransactionSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const QuickAddTransactionSheet(),
+    );
+  }
+
+  void _showScanSheet() {
+    context.push('/scan-receipt');
+  }
+
+  void _showCalculatorSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const CalculatorSheet(),
     );
   }
 
@@ -114,33 +129,10 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
           ),
           Positioned(
             top: -22,
-            child: GestureDetector(
-              onTap: () => _showAddTransactionSheet(context),
-              child: Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.primaryLight, AppColors.primaryDark],
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.4),
-                      blurRadius: 16,
-                      spreadRadius: 0,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  LucideIcons.plus,
-                  color: Colors.white,
-                  size: 26,
-                ),
-              ),
+            child: SpeedDialFab(
+              onScan: _showScanSheet,
+              onAdd: _showAddTransactionSheet,
+              onCalculator: _showCalculatorSheet,
             ),
           ),
         ],

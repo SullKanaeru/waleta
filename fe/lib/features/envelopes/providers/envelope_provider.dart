@@ -24,7 +24,7 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
       final storage = ref.read(localStorageServiceProvider);
       final rawEnvelopes = storage.getEnvelopes();
       final rawPockets = storage.getPockets();
-      
+
       return rawEnvelopes.map((data) {
         final id = data['id'] ?? '';
         IconData envIcon = LucideIcons.folder;
@@ -34,13 +34,15 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
           envColor = AppColors.primary;
         } else if (id == 'keinginan') {
           envIcon = LucideIcons.coffee;
-          envColor = AppColors.accent;
+          envColor = AppColors.accentAmber;
         } else if (id == 'tabungan') {
           envIcon = LucideIcons.wallet;
           envColor = Colors.teal;
         }
 
-        final myPockets = rawPockets.where((p) => p['master_id'] == id).map((pData) {
+        final myPockets = rawPockets.where((p) => p['master_id'] == id).map((
+          pData,
+        ) {
           return Pocket(
             id: pData['id'] ?? '',
             name: pData['name'] ?? '',
@@ -70,9 +72,9 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
       final list = response.data as List;
       return list.map((e) {
         final data = e as Map<String, dynamic>;
-        
+
         final id = data['id'] ?? '';
-        
+
         // Dynamic icons & colors based on Envelope ID
         IconData envIcon = LucideIcons.folder;
         Color envColor = AppColors.primary;
@@ -81,7 +83,7 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
           envColor = AppColors.primary;
         } else if (id == 'keinginan') {
           envIcon = LucideIcons.coffee;
-          envColor = AppColors.accent;
+          envColor = AppColors.accentAmber;
         } else if (id == 'tabungan') {
           envIcon = LucideIcons.wallet;
           envColor = Colors.teal;
@@ -93,16 +95,18 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
           final pocketsList = data['pockets'] as List;
           for (var p in pocketsList) {
             final pData = p as Map<String, dynamic>;
-            parsedPockets.add(Pocket(
-              id: pData['id'] ?? '',
-              name: pData['name'] ?? '',
-              allocatedAmount: (pData['balance'] ?? 0).toDouble(),
-              iconData: _getIconData(pData['icon']),
-              color: _getColor(pData['color']),
-              stsMode: _parseStsMode(pData['sts_mode']),
-              stsPeriodDays: pData['sts_period_days'] ?? 0,
-              stsStartDate: pData['sts_start_date'],
-            ));
+            parsedPockets.add(
+              Pocket(
+                id: pData['id'] ?? '',
+                name: pData['name'] ?? '',
+                allocatedAmount: (pData['balance'] ?? 0).toDouble(),
+                iconData: _getIconData(pData['icon']),
+                color: _getColor(pData['color']),
+                stsMode: _parseStsMode(pData['sts_mode']),
+                stsPeriodDays: pData['sts_period_days'] ?? 0,
+                stsStartDate: pData['sts_start_date'],
+              ),
+            );
           }
         }
 
@@ -129,7 +133,12 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
     return [];
   }
 
-  Future<bool> allocateFunds(String accountId, String masterId, String? pocketId, double amount) async {
+  Future<bool> allocateFunds(
+    String accountId,
+    String masterId,
+    String? pocketId,
+    double amount,
+  ) async {
     if (!ref.read(authProvider).isLoggedIn) {
       final storage = ref.read(localStorageServiceProvider);
 
@@ -296,52 +305,82 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
 
   StsMode _parseStsMode(String? mode) {
     switch (mode) {
-      case 'daily': return StsMode.daily;
-      case 'custom_period': return StsMode.customPeriod;
-      case 'lump_sum': return StsMode.lumpSum;
-      case 'locked': return StsMode.locked;
-      default: return StsMode.daily;
+      case 'daily':
+        return StsMode.daily;
+      case 'custom_period':
+        return StsMode.customPeriod;
+      case 'lump_sum':
+        return StsMode.lumpSum;
+      case 'locked':
+        return StsMode.locked;
+      default:
+        return StsMode.daily;
     }
   }
 
   String _stsModeToString(StsMode mode) {
     switch (mode) {
-      case StsMode.daily: return 'daily';
-      case StsMode.customPeriod: return 'custom_period';
-      case StsMode.lumpSum: return 'lump_sum';
-      case StsMode.locked: return 'locked';
-      default: return 'daily';
+      case StsMode.daily:
+        return 'daily';
+      case StsMode.customPeriod:
+        return 'custom_period';
+      case StsMode.lumpSum:
+        return 'lump_sum';
+      case StsMode.locked:
+        return 'locked';
+      default:
+        return 'daily';
     }
   }
 
   // Helpers to map string to IconData/Color
   IconData _getIconData(String? name) {
     switch (name) {
-      case 'shoppingBag': return LucideIcons.shoppingBag;
-      case 'car': return LucideIcons.car;
-      case 'home': return LucideIcons.home;
-      case 'coffee': return LucideIcons.coffee;
-      case 'heart': return LucideIcons.heart;
-      case 'plane': return LucideIcons.plane;
-      case 'book': return LucideIcons.book;
-      case 'monitorPlay': return LucideIcons.monitorPlay;
-      case 'music': return LucideIcons.music;
-      default: return LucideIcons.folder;
+      case 'shoppingBag':
+        return LucideIcons.shoppingBag;
+      case 'car':
+        return LucideIcons.car;
+      case 'home':
+        return LucideIcons.home;
+      case 'coffee':
+        return LucideIcons.coffee;
+      case 'heart':
+        return LucideIcons.heart;
+      case 'plane':
+        return LucideIcons.plane;
+      case 'book':
+        return LucideIcons.book;
+      case 'monitorPlay':
+        return LucideIcons.monitorPlay;
+      case 'music':
+        return LucideIcons.music;
+      default:
+        return LucideIcons.folder;
     }
   }
 
   Color _getColor(String? name) {
     switch (name) {
-      case 'primary': return AppColors.primary;
-      case 'accent': return AppColors.accent;
-      case 'error': return AppColors.error;
-      case 'warning': return AppColors.warning;
-      case 'teal': return Colors.teal;
-      case 'indigo': return Colors.indigo;
-      case 'deepOrange': return Colors.deepOrange;
-      case 'pink': return Colors.pink;
-      case 'purple': return Colors.purple;
-      default: return AppColors.primary;
+      case 'primary':
+        return AppColors.primary;
+      case 'accent':
+        return AppColors.accentAmber;
+      case 'error':
+        return AppColors.error;
+      case 'warning':
+        return AppColors.warning;
+      case 'teal':
+        return Colors.teal;
+      case 'indigo':
+        return Colors.indigo;
+      case 'deepOrange':
+        return Colors.deepOrange;
+      case 'pink':
+        return Colors.pink;
+      case 'purple':
+        return Colors.purple;
+      default:
+        return AppColors.primary;
     }
   }
 }
@@ -362,7 +401,7 @@ String getIconName(IconData icon) {
 
 String getColorName(Color color) {
   if (color == AppColors.primary) return 'primary';
-  if (color == AppColors.accent) return 'accent';
+  if (color == AppColors.accentAmber) return 'accent';
   if (color == AppColors.error) return 'error';
   if (color == AppColors.warning) return 'warning';
   if (color == Colors.teal) return 'teal';
@@ -373,4 +412,7 @@ String getColorName(Color color) {
   return 'primary';
 }
 
-final envelopesProvider = AsyncNotifierProvider<EnvelopesNotifier, List<Envelope>>(EnvelopesNotifier.new);
+final envelopesProvider =
+    AsyncNotifierProvider<EnvelopesNotifier, List<Envelope>>(
+      EnvelopesNotifier.new,
+    );

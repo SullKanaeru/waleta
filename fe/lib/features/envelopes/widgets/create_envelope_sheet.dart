@@ -14,7 +14,10 @@ class ThousandsFormatter extends TextInputFormatter {
   static const separator = '.';
 
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     if (newValue.text.isEmpty) {
       return newValue.copyWith(text: '');
     }
@@ -36,7 +39,8 @@ class CreateEnvelopeSheet extends ConsumerStatefulWidget {
   const CreateEnvelopeSheet({super.key});
 
   @override
-  ConsumerState<CreateEnvelopeSheet> createState() => _CreateEnvelopeSheetState();
+  ConsumerState<CreateEnvelopeSheet> createState() =>
+      _CreateEnvelopeSheetState();
 }
 
 class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
@@ -55,26 +59,37 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
 
   // Step 3: Alokasi Rekening
   bool _usePercentage = false;
-  
+
   // Mock Data Rekening
   final Map<String, double> _mockAccounts = {
     'BRI (Gaji)': 10000000.0,
     'Mandiri (Simpanan)': 5000000.0,
   };
-  
+
   // controllers for allocation inputs (raw string value)
   final Map<String, TextEditingController> _allocationControllers = {};
 
   final List<IconData> _icons = [
-    LucideIcons.wallet, LucideIcons.shoppingBag, LucideIcons.car,
-    LucideIcons.home, LucideIcons.coffee, LucideIcons.heart,
-    LucideIcons.plane, LucideIcons.book, LucideIcons.monitorPlay,
+    LucideIcons.wallet,
+    LucideIcons.shoppingBag,
+    LucideIcons.car,
+    LucideIcons.home,
+    LucideIcons.coffee,
+    LucideIcons.heart,
+    LucideIcons.plane,
+    LucideIcons.book,
+    LucideIcons.monitorPlay,
   ];
 
   final List<Color> _colors = [
-    AppColors.primary, AppColors.accent, AppColors.error,
-    AppColors.warning, Colors.teal, Colors.indigo,
-    Colors.deepOrange, Colors.pink,
+    AppColors.primary,
+    AppColors.accentAmber,
+    AppColors.error,
+    AppColors.warning,
+    Colors.teal,
+    Colors.indigo,
+    Colors.deepOrange,
+    Colors.pink,
   ];
 
   @override
@@ -119,22 +134,36 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
   void _nextStep() {
     if (_currentStep == 0) {
       if (_nameController.text.isEmpty || _targetAmount <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mohon isi nama dan target nominal')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Mohon isi nama dan target nominal')),
+        );
         return;
       }
     } else if (_currentStep == 1) {
-      if (_selectedStsMode == StsMode.daily && int.tryParse(_resetDateController.text) == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tanggal reset tidak valid')));
+      if (_selectedStsMode == StsMode.daily &&
+          int.tryParse(_resetDateController.text) == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tanggal reset tidak valid')),
+        );
         return;
       }
-      if (_selectedStsMode == StsMode.frequency && int.tryParse(_frequencyController.text) == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Target frekuensi tidak valid')));
+      if (_selectedStsMode == StsMode.frequency &&
+          int.tryParse(_frequencyController.text) == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Target frekuensi tidak valid')),
+        );
         return;
       }
     } else if (_currentStep == 2) {
       // Validate allocation
       if (_totalAllocated != _targetAmount) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Total alokasi rekening harus sama persis dengan target amplop!')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Total alokasi rekening harus sama persis dengan target amplop!',
+            ),
+          ),
+        );
         return;
       }
       _saveEnvelope();
@@ -180,7 +209,11 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final formatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final formatter = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -200,16 +233,22 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Buat Amplop (Tahap ${_currentStep + 1}/3)', style: theme.textTheme.titleLarge),
-              IconButton(icon: const Icon(LucideIcons.x), onPressed: () => Navigator.pop(context)),
+              Text(
+                'Buat Amplop (Tahap ${_currentStep + 1}/3)',
+                style: theme.textTheme.titleLarge,
+              ),
+              IconButton(
+                icon: const Icon(LucideIcons.x),
+                onPressed: () => Navigator.pop(context),
+              ),
             ],
           ),
           const SizedBox(height: 24),
-          
+
           if (_currentStep == 0) _buildStep1(theme),
           if (_currentStep == 1) _buildStep2(theme),
           if (_currentStep == 2) _buildStep3(theme, formatter),
-          
+
           const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
@@ -220,7 +259,9 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
                     flex: 1,
                     child: OutlinedButton(
                       onPressed: () => setState(() => _currentStep--),
-                      style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                       child: const Text('Kembali'),
                     ),
                   ),
@@ -234,7 +275,9 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: Text(_currentStep == 2 ? 'Simpan Amplop' : 'Selanjutnya'),
+                    child: Text(
+                      _currentStep == 2 ? 'Simpan Amplop' : 'Selanjutnya',
+                    ),
                   ),
                 ),
               ],
@@ -280,14 +323,21 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: isSelected ? _selectedColor.withValues(alpha: 0.2) : theme.colorScheme.surface,
+                  color: isSelected
+                      ? _selectedColor.withValues(alpha: 0.2)
+                      : theme.colorScheme.surface,
                   border: Border.all(
-                    color: isSelected ? _selectedColor : theme.dividerColor.withValues(alpha: 0.1),
+                    color: isSelected
+                        ? _selectedColor
+                        : theme.dividerColor.withValues(alpha: 0.1),
                     width: isSelected ? 2 : 1,
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: isSelected ? _selectedColor : theme.iconTheme.color),
+                child: Icon(
+                  icon,
+                  color: isSelected ? _selectedColor : theme.iconTheme.color,
+                ),
               ),
             );
           }).toList(),
@@ -308,9 +358,17 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
                 decoration: BoxDecoration(
                   color: color,
                   shape: BoxShape.circle,
-                  border: isSelected ? Border.all(color: Colors.white, width: 3) : null,
+                  border: isSelected
+                      ? Border.all(color: Colors.white, width: 3)
+                      : null,
                   boxShadow: isSelected
-                      ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 8, offset: const Offset(0, 4))]
+                      ? [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
                       : [],
                 ),
               ),
@@ -325,12 +383,16 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Atur Kecepatan Pengeluaran (Velocity of Money)', style: theme.textTheme.titleLarge?.copyWith(fontSize: 16)),
+        Text(
+          'Atur Kecepatan Pengeluaran (Velocity of Money)',
+          style: theme.textTheme.titleLarge?.copyWith(fontSize: 16),
+        ),
         const SizedBox(height: 16),
         _buildModeOption(
           theme,
           title: 'Daily Pacing (Mode Harian)',
-          desc: 'Cocok untuk kebutuhan sehari-hari seperti makan & bensin. STS dihitung per hari.',
+          desc:
+              'Cocok untuk kebutuhan sehari-hari seperti makan & bensin. STS dihitung per hari.',
           mode: StsMode.daily,
           icon: LucideIcons.calendar,
         ),
@@ -372,7 +434,8 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
         _buildModeOption(
           theme,
           title: 'Lump-Sum (Sekali Pakai)',
-          desc: 'Cocok untuk tabungan tiket atau event spesifik. Uang diamankan sepenuhnya.',
+          desc:
+              'Cocok untuk tabungan tiket atau event spesifik. Uang diamankan sepenuhnya.',
           mode: StsMode.lumpSum,
           icon: LucideIcons.box,
         ),
@@ -380,16 +443,28 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
     );
   }
 
-  Widget _buildModeOption(ThemeData theme, {required String title, required String desc, required StsMode mode, required IconData icon}) {
+  Widget _buildModeOption(
+    ThemeData theme, {
+    required String title,
+    required String desc,
+    required StsMode mode,
+    required IconData icon,
+  }) {
     final isSelected = _selectedStsMode == mode;
     return GestureDetector(
       onTap: () => setState(() => _selectedStsMode = mode),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.05) : theme.colorScheme.surface,
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.05)
+              : theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isSelected ? AppColors.primary : theme.dividerColor.withValues(alpha: 0.1)),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : theme.dividerColor.withValues(alpha: 0.1),
+          ),
         ),
         child: Row(
           children: [
@@ -399,9 +474,18 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? AppColors.primary : null)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? AppColors.primary : null,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(desc, style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12)),
+                  Text(
+                    desc,
+                    style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
+                  ),
                 ],
               ),
             ),
@@ -413,21 +497,33 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
 
   Widget _buildStep3(ThemeData theme, NumberFormat formatter) {
     final remaining = max(0.0, _targetAmount - _totalAllocated);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Target: ${formatter.format(_targetAmount)}', style: theme.textTheme.titleMedium),
-            Text('Kurang: ${formatter.format(remaining)}', style: TextStyle(color: remaining > 0 ? AppColors.error : AppColors.primary, fontWeight: FontWeight.bold)),
+            Text(
+              'Target: ${formatter.format(_targetAmount)}',
+              style: theme.textTheme.titleMedium,
+            ),
+            Text(
+              'Kurang: ${formatter.format(remaining)}',
+              style: TextStyle(
+                color: remaining > 0 ? AppColors.error : AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 16),
         Row(
           children: [
-            Text('Input dengan Persentase (%)', style: theme.textTheme.bodyMedium),
+            Text(
+              'Input dengan Persentase (%)',
+              style: theme.textTheme.bodyMedium,
+            ),
             const Spacer(),
             Switch(
               value: _usePercentage,
@@ -453,7 +549,9 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
+                border: Border.all(
+                  color: theme.dividerColor.withValues(alpha: 0.05),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,18 +559,30 @@ class _CreateEnvelopeSheetState extends ConsumerState<CreateEnvelopeSheet> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text('Saldo: ${formatter.format(entry.value)}', style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12)),
+                      Text(
+                        entry.key,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Saldo: ${formatter.format(entry.value)}',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: controller,
                     keyboardType: TextInputType.number,
-                    inputFormatters: _usePercentage ? [] : [ThousandsFormatter()],
+                    inputFormatters: _usePercentage
+                        ? []
+                        : [ThousandsFormatter()],
                     onChanged: (v) => setState(() {}),
                     decoration: InputDecoration(
-                      labelText: _usePercentage ? 'Persentase (%)' : 'Alokasi Nominal',
+                      labelText: _usePercentage
+                          ? 'Persentase (%)'
+                          : 'Alokasi Nominal',
                       suffixText: _usePercentage ? '%' : null,
                       prefixText: _usePercentage ? null : 'Rp ',
                       border: const OutlineInputBorder(),

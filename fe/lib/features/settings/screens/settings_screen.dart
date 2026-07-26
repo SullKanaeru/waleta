@@ -21,15 +21,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pengaturan'),
-      ),
+      appBar: AppBar(title: const Text('Pengaturan')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
           _buildUserInfo(theme),
           const SizedBox(height: 32),
-          Text('Pengaturan Keamanan & Privasi', style: theme.textTheme.titleLarge),
+          Text(
+            'Pengaturan Keamanan & Privasi',
+            style: theme.textTheme.titleLarge,
+          ),
           const SizedBox(height: 16),
           _buildSecuritySettings(theme),
           const SizedBox(height: 32),
@@ -46,24 +47,34 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final isLoggedIn = authState.isLoggedIn;
     final userName = authState.user?.name ?? 'Pengguna Tamu';
     final userInitial = userName.isNotEmpty ? userName[0].toUpperCase() : 'P';
-    final memberSince = isLoggedIn 
-        ? 'Member Waleta'
-        : 'Mode Tamu (Offline)';
+    final memberSince = isLoggedIn ? 'Member Waleta' : 'Mode Tamu (Offline)';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         CircleAvatar(
           radius: 36,
-          backgroundColor: isLoggedIn ? AppColors.primary : Colors.grey.shade400,
-          child: Text(userInitial, style: const TextStyle(fontSize: 28, color: Colors.white, fontWeight: FontWeight.bold)),
+          backgroundColor: isLoggedIn
+              ? AppColors.primary
+              : Colors.grey.shade400,
+          child: Text(
+            userInitial,
+            style: const TextStyle(
+              fontSize: 28,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(userName, style: theme.textTheme.displayMedium?.copyWith(fontSize: 24)),
+              Text(
+                userName,
+                style: theme.textTheme.displayMedium?.copyWith(fontSize: 24),
+              ),
               const SizedBox(height: 4),
               Text(memberSince, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 8),
@@ -75,7 +86,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         minimumSize: Size.zero,
                       ),
                       child: const Text('Masuk'),
@@ -86,7 +100,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.primary,
                         side: const BorderSide(color: AppColors.primary),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         minimumSize: Size.zero,
                       ),
                       child: const Text('Daftar'),
@@ -102,7 +119,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.error,
                     side: const BorderSide(color: AppColors.error),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     minimumSize: Size.zero,
                   ),
                   child: const Text('Keluar'),
@@ -134,7 +154,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(LucideIcons.fingerprint, color: AppColors.primary),
+              child: const Icon(
+                LucideIcons.fingerprint,
+                color: AppColors.primary,
+              ),
             ),
           ),
           Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.05)),
@@ -145,10 +168,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.1),
+                color: AppColors.accentAmber.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(LucideIcons.smartphone, color: AppColors.accent),
+              child: const Icon(
+                LucideIcons.smartphone,
+                color: AppColors.accentAmber,
+              ),
             ),
             onTap: () {},
           ),
@@ -167,8 +193,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Column(
         children: [
           ListTile(
-            title: const Text('Mulai Lembaran Baru', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
-            subtitle: const Text('Nolkan semua saldo saat ini tanpa menghapus riwayat transaksi masa lalu.'),
+            title: const Text(
+              'Mulai Lembaran Baru',
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: const Text(
+              'Nolkan semua saldo saat ini tanpa menghapus riwayat transaksi masa lalu.',
+            ),
             leading: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -189,7 +223,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: const Text('Mulai Lembaran Baru?'),
           content: const Text(
             'Semua saldo Rekening, Dompet, dan Saku Anda saat ini akan diatur menjadi Rp 0.\n\nRiwayat dan statistik transaksi Anda di bulan-bulan sebelumnya tetap utuh. Anda yakin ingin melanjutkan?',
@@ -202,14 +238,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(ctx);
-                final success = await ref.read(accountsProvider.notifier).freshStart();
+                final success = await ref
+                    .read(accountsProvider.notifier)
+                    .freshStart();
                 if (success && mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Text('Berhasil memulai lembaran baru! Silakan Sesuaikan Saldo Anda kembali.'),
+                      content: const Text(
+                        'Berhasil memulai lembaran baru! Silakan Sesuaikan Saldo Anda kembali.',
+                      ),
                       backgroundColor: AppColors.primary,
                       behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   );
                 }

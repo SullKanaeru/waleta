@@ -65,7 +65,7 @@ class _QuickAddTransactionSheetState
 
   final List<_Category> _incomeCategories = const [
     _Category('Gaji', '💰', AppColors.primary),
-    _Category('Bonus', '🎁', AppColors.accent),
+    _Category('Bonus', '🎁', AppColors.accentAmber),
     _Category('Investasi', '📈', Colors.teal),
     _Category('Lainnya', '📦', Colors.grey),
   ];
@@ -678,7 +678,7 @@ class _QuickAddTransactionSheetState
     final matches = accounts.where((a) => a.id == _selectedAccountId);
     if (matches.isNotEmpty) {
       final acc = matches.first;
-      return !_isCashAccount(acc) ? AppColors.primary : AppColors.accent;
+      return !_isCashAccount(acc) ? AppColors.primary : AppColors.accentAmber;
     }
     return Colors.grey;
   }
@@ -912,7 +912,7 @@ class _QuickAddTransactionSheetState
                                   LucideIcons.wallet,
                                   color: isSel
                                       ? AppColors.primary
-                                      : AppColors.accent,
+                                      : AppColors.accentAmber,
                                   size: 20,
                                 ),
                                 title: Text(
@@ -1128,7 +1128,8 @@ class _QuickAddTransactionSheetState
                         );
                         double totalNegativePockets = 0.0;
                         for (var p in env.pockets) {
-                          if (p.allocatedAmount < 0) totalNegativePockets += p.allocatedAmount.abs();
+                          if (p.allocatedAmount < 0)
+                            totalNegativePockets += p.allocatedAmount.abs();
                         }
                         final rawUnallocated =
                             env.allocatedAmount -

@@ -627,17 +627,17 @@ class _JournalScreenState extends State<JournalScreen>
       SunburstNode(
         label: 'Tabungan',
         value: total * 0.20, // 20%
-        color: AppColors.accent,
+        color: AppColors.accentAmber,
         children: [
           SunburstNode(
             label: 'Dana Darurat',
             value: total * 0.15,
-            color: AppColors.accent.withValues(alpha: 0.8),
+            color: AppColors.accentAmber.withValues(alpha: 0.8),
           ),
           SunburstNode(
             label: 'Investasi',
             value: total * 0.05,
-            color: AppColors.accent.withValues(alpha: 0.6),
+            color: AppColors.accentAmber.withValues(alpha: 0.6),
           ),
         ],
       ),
@@ -759,7 +759,9 @@ class _JournalScreenState extends State<JournalScreen>
                 scoreText,
                 style: theme.textTheme.displayMedium?.copyWith(
                   fontSize: 24,
-                  color: scoreVal > 0.7 ? AppColors.accent : AppColors.warning,
+                  color: scoreVal > 0.7
+                      ? AppColors.accentAmber
+                      : AppColors.warning,
                 ),
               ),
             ],
@@ -768,7 +770,7 @@ class _JournalScreenState extends State<JournalScreen>
           LinearProgressIndicator(
             value: scoreVal,
             backgroundColor: theme.dividerColor.withValues(alpha: 0.1),
-            color: scoreVal > 0.7 ? AppColors.accent : AppColors.warning,
+            color: scoreVal > 0.7 ? AppColors.accentAmber : AppColors.warning,
             minHeight: 12,
             borderRadius: BorderRadius.circular(6),
           ),
@@ -777,7 +779,7 @@ class _JournalScreenState extends State<JournalScreen>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: scoreVal > 0.7
-                  ? AppColors.accent.withValues(alpha: 0.05)
+                  ? AppColors.accentAmber.withValues(alpha: 0.05)
                   : AppColors.error.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
             ),
@@ -788,7 +790,9 @@ class _JournalScreenState extends State<JournalScreen>
                   scoreVal > 0.7
                       ? LucideIcons.checkCircle
                       : LucideIcons.alertCircle,
-                  color: scoreVal > 0.7 ? AppColors.accent : AppColors.error,
+                  color: scoreVal > 0.7
+                      ? AppColors.accentAmber
+                      : AppColors.error,
                   size: 20,
                 ),
                 const SizedBox(width: 12),
@@ -867,13 +871,13 @@ class _JournalScreenState extends State<JournalScreen>
         children: [
           Row(
             children: [
-              const Icon(LucideIcons.target, color: AppColors.accent),
+              const Icon(LucideIcons.target, color: AppColors.accentAmber),
               const SizedBox(width: 8),
               Text(
                 'Resolusi 2027',
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontSize: 16,
-                  color: AppColors.accent,
+                  color: AppColors.accentAmber,
                 ),
               ),
             ],
@@ -895,7 +899,7 @@ class _JournalScreenState extends State<JournalScreen>
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
+                backgroundColor: AppColors.accentAmber,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(

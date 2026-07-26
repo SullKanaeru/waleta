@@ -63,7 +63,10 @@ class MultiSelectNotifier extends Notifier<MultiSelectState> {
   MultiSelectState build() => MultiSelectState();
 
   void toggleMode(bool val) {
-    state = state.copyWith(isMultiSelect: val, selectedIds: val ? state.selectedIds : {});
+    state = state.copyWith(
+      isMultiSelect: val,
+      selectedIds: val ? state.selectedIds : {},
+    );
   }
 
   void toggleSelection(String id) {
@@ -79,15 +82,16 @@ class MultiSelectNotifier extends Notifier<MultiSelectState> {
     }
     state = state.copyWith(selectedIds: newSet, isMultiSelect: true);
   }
-  
+
   void clear() {
     state = MultiSelectState();
   }
 }
 
-final multiSelectProvider = NotifierProvider<MultiSelectNotifier, MultiSelectState>(
-  MultiSelectNotifier.new,
-);
+final multiSelectProvider =
+    NotifierProvider<MultiSelectNotifier, MultiSelectState>(
+      MultiSelectNotifier.new,
+    );
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -150,32 +154,46 @@ class DashboardScreen extends ConsumerWidget {
     final multiSelect = ref.watch(multiSelectProvider);
 
     return Scaffold(
-      floatingActionButton: multiSelect.isMultiSelect && multiSelect.selectedIds.isNotEmpty
+      floatingActionButton:
+          multiSelect.isMultiSelect && multiSelect.selectedIds.isNotEmpty
           ? FloatingActionButton.extended(
               onPressed: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
                     title: const Text('Hapus Transaksi?'),
-                    content: Text('Anda yakin ingin menghapus ${multiSelect.selectedIds.length} transaksi terpilih?'),
+                    content: Text(
+                      'Anda yakin ingin menghapus ${multiSelect.selectedIds.length} transaksi terpilih?',
+                    ),
                     actions: [
-                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Batal'),
+                      ),
                       ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white),
-                        onPressed: () => Navigator.pop(ctx, true), 
-                        child: const Text('Hapus')
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Hapus'),
                       ),
                     ],
-                  )
+                  ),
                 );
                 if (confirm == true) {
-                  await ref.read(transactionsProvider.notifier).deleteTransactions(multiSelect.selectedIds.toList());
+                  await ref
+                      .read(transactionsProvider.notifier)
+                      .deleteTransactions(multiSelect.selectedIds.toList());
                   ref.read(multiSelectProvider.notifier).clear();
                 }
               },
               backgroundColor: AppColors.error,
               icon: const Icon(LucideIcons.trash2, color: Colors.white),
-              label: Text('Hapus (${multiSelect.selectedIds.length})', style: const TextStyle(color: Colors.white)),
+              label: Text(
+                'Hapus (${multiSelect.selectedIds.length})',
+                style: const TextStyle(color: Colors.white),
+              ),
             )
           : null,
       body: CustomScrollView(
@@ -194,7 +212,7 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.primaryVariant],
+                      colors: [AppColors.primary, AppColors.primary],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -707,13 +725,16 @@ class DashboardScreen extends ConsumerWidget {
                 },
                 onTap: () {
                   if (multiSelect.isMultiSelect) {
-                    ref.read(multiSelectProvider.notifier).toggleSelection(tx.id);
+                    ref
+                        .read(multiSelectProvider.notifier)
+                        .toggleSelection(tx.id);
                   } else {
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,
                       backgroundColor: Colors.transparent,
-                      builder: (context) => EditTransactionSheet(transaction: tx),
+                      builder: (context) =>
+                          EditTransactionSheet(transaction: tx),
                     );
                   }
                 },
@@ -724,59 +745,64 @@ class DashboardScreen extends ConsumerWidget {
                     vertical: 10,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : theme.colorScheme.surface,
+                    color: isSelected
+                        ? AppColors.primary.withValues(alpha: 0.15)
+                        : theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: isSelected ? Border.all(color: AppColors.primary, width: 1.5) : Border.all(color: Colors.transparent, width: 1.5),
+                    border: isSelected
+                        ? Border.all(color: AppColors.primary, width: 1.5)
+                        : Border.all(color: Colors.transparent, width: 1.5),
                   ),
                   child: Row(
                     children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: (isIncome ? AppColors.primary : AppColors.error)
-                            .withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(10),
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color:
+                              (isIncome ? AppColors.primary : AppColors.error)
+                                  .withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          isIncome
+                              ? LucideIcons.arrowDownLeft
+                              : LucideIcons.shoppingBag,
+                          color: isIncome ? AppColors.primary : AppColors.error,
+                          size: 16,
+                        ),
                       ),
-                      child: Icon(
-                        isIncome
-                            ? LucideIcons.arrowDownLeft
-                            : LucideIcons.shoppingBag,
-                        color: isIncome ? AppColors.primary : AppColors.error,
-                        size: 16,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tx.merchantName,
+                              style: theme.textTheme.titleSmall,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text('Rekening', style: theme.textTheme.labelSmall),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            tx.merchantName,
-                            style: theme.textTheme.titleSmall,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text('Rekening', style: theme.textTheme.labelSmall),
-                        ],
+                      _BlurrableText(
+                        text: isIncome
+                            ? '+${formatter.format(tx.amount)}'
+                            : '-${formatter.format(tx.amount.abs())}',
+                        isBlurred: isBlurred,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: isIncome
+                              ? AppColors.primary
+                              : theme.colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                    _BlurrableText(
-                      text: isIncome
-                          ? '+${formatter.format(tx.amount)}'
-                          : '-${formatter.format(tx.amount.abs())}',
-                      isBlurred: isBlurred,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: isIncome
-                            ? AppColors.primary
-                            : theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
               );
             }),
             const SizedBox(height: 4),

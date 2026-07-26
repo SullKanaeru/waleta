@@ -58,7 +58,7 @@ class IncomeScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.primaryVariant],
+                colors: [AppColors.primary, AppColors.primary],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -173,12 +173,14 @@ class IncomeScreen extends ConsumerWidget {
                           leading: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.accent.withValues(alpha: 0.1),
+                              color: AppColors.accentAmber.withValues(
+                                alpha: 0.1,
+                              ),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               LucideIcons.creditCard,
-                              color: AppColors.accent,
+                              color: AppColors.accentAmber,
                             ),
                           ),
                           title: Text(
@@ -392,14 +394,13 @@ class IncomeScreen extends ConsumerWidget {
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: (isBank ? AppColors.primary : AppColors.accent).withValues(
-              alpha: 0.12,
-            ),
+            color: (isBank ? AppColors.primary : AppColors.accentAmber)
+                .withValues(alpha: 0.12),
             shape: BoxShape.circle,
           ),
           child: Icon(
             isBank ? LucideIcons.creditCard : LucideIcons.wallet,
-            color: isBank ? AppColors.primary : AppColors.accent,
+            color: isBank ? AppColors.primary : AppColors.accentAmber,
             size: 22,
           ),
         ),

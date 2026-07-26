@@ -61,7 +61,7 @@ class ExpenseTab extends StatelessWidget {
     // Colors mapping
     final colors = [
       AppColors.primary,
-      AppColors.accent,
+      AppColors.accentAmber,
       Colors.orange,
       Colors.teal,
       Colors.purple,
