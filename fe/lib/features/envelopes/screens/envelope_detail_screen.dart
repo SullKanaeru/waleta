@@ -294,11 +294,11 @@ class EnvelopeDetailScreen extends ConsumerWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: env.color.withValues(alpha: 0.06),
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: env.color.withValues(alpha: 0.15)),
+        border: Border.all(color: AppColors.lightBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -306,13 +306,13 @@ class EnvelopeDetailScreen extends ConsumerWidget {
           Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: env.color.withValues(alpha: 0.12),
+                  color: env.color.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(env.iconData, color: env.color, size: 20),
+                child: Icon(env.iconData, color: env.color, size: 18),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -367,9 +367,8 @@ class EnvelopeDetailScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
+              color: AppColors.lightMuted,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: theme.dividerColor),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -467,7 +466,7 @@ class EnvelopeDetailScreen extends ConsumerWidget {
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: theme.dividerColor),
+            border: Border.all(color: AppColors.lightBorder),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,13 +509,13 @@ class EnvelopeDetailScreen extends ConsumerWidget {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: theme.dividerColor.withValues(alpha: 0.3),
+                        color: AppColors.lightMuted,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         LucideIcons.edit2,
-                        size: 14,
-                        color: Colors.grey,
+                        size: 13,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ),

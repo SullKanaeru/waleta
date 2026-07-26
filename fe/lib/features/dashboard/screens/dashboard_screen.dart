@@ -208,48 +208,52 @@ class DashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header
+                // Header — Clean minimal
                 Container(
                   padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).padding.top + 16,
+                    top: MediaQuery.of(context).padding.top + 12,
                     left: 20,
                     right: 20,
-                    bottom: 24,
+                    bottom: 20,
                   ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.primary],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
+                  color: theme.scaffoldBackgroundColor,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHeaderTop(context, ref, selectedDate),
                       const SizedBox(height: 20),
+                      // Summary pills
                       Row(
                         children: [
                           Expanded(
-                            child: _buildSummaryColumn(
+                            child: _buildStatPill(
+                              context,
+                              theme,
                               'Pengeluaran',
                               formatter.format(totalExpense.abs()),
+                              AppColors.expense,
                               isBlurred,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildSummaryColumn(
+                            child: _buildStatPill(
+                              context,
+                              theme,
                               'Pemasukan',
                               formatter.format(totalIncome),
+                              AppColors.income,
                               isBlurred,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: _buildSummaryColumn(
-                              'Total Saldo',
+                            child: _buildStatPill(
+                              context,
+                              theme,
+                              'Saldo',
                               formatter.format(totalRealBalance),
+                              AppColors.primary,
                               isBlurred,
                             ),
                           ),
@@ -261,37 +265,16 @@ class DashboardScreen extends ConsumerWidget {
 
                 // Transaction History
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Spacer(),
-                          GestureDetector(
-                            onTap: () => _showMonthYearPicker(
-                              context,
-                              ref,
-                              selectedDate,
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  DateFormat('MMMM yyyy').format(selectedDate),
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  LucideIcons.chevronDown,
-                                  size: 14,
-                                  color: AppColors.primary,
-                                ),
-                              ],
-                            ),
+                          Text(
+                            'Riwayat',
+                            style: theme.textTheme.titleMedium,
                           ),
                         ],
                       ),
@@ -324,6 +307,8 @@ class DashboardScreen extends ConsumerWidget {
     WidgetRef ref,
     DateTime selectedDate,
   ) {
+    final theme = Theme.of(context);
+    final isBlurred = ref.watch(privacyBlurProvider);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -335,42 +320,65 @@ class DashboardScreen extends ConsumerWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.lightMuted,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   LucideIcons.user,
-                  color: Colors.white,
+                  color: theme.colorScheme.onSurfaceVariant,
                   size: 18,
                 ),
               ),
             ),
             const SizedBox(width: 12),
-            const Text(
+            Text(
               'Waleta',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+              style: theme.textTheme.titleLarge,
             ),
           ],
         ),
         Row(
           children: [
             GestureDetector(
-              onTap: () => _showMonthYearPicker(context, ref, selectedDate),
+              onTap: () {
+                ref.read(privacyBlurProvider.notifier).toggle();
+              },
               child: Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.lightMuted,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  LucideIcons.calendar,
-                  color: Colors.white,
-                  size: 18,
+                child: Icon(
+                  isBlurred ? LucideIcons.eyeOff : LucideIcons.eye,
+                  color: theme.colorScheme.onSurfaceVariant,
+                  size: 16,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () => _showMonthYearPicker(context, ref, selectedDate),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.lightMuted,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      LucideIcons.calendar,
+                      size: 14,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      DateFormat('MMM yyyy').format(selectedDate),
+                      style: theme.textTheme.labelLarge,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -380,35 +388,47 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryColumn(String label, String value, bool isBlurred) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
+  Widget _buildStatPill(
+    BuildContext context,
+    ThemeData theme,
+    String label,
+    String value,
+    Color accentColor,
+    bool isBlurred,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelSmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: _BlurrableText(
-            text: value,
-            isBlurred: isBlurred,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: _BlurrableText(
+              text: value,
+              isBlurred: isBlurred,
+              style: TextStyle(
+                color: accentColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.3,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -725,40 +745,43 @@ class DashboardScreen extends ConsumerWidget {
                   }
                 },
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 6),
+                  margin: const EdgeInsets.only(bottom: 2),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 10,
+                    vertical: 11,
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.15)
+                        ? AppColors.primary.withValues(alpha: 0.08)
                         : theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: isSelected
-                        ? Border.all(color: AppColors.primary, width: 1.5)
-                        : Border.all(color: Colors.transparent, width: 1.5),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.primary.withValues(alpha: 0.4)
+                          : AppColors.lightBorder,
+                      width: 1,
+                    ),
                   ),
                   child: Row(
                     children: [
                       Container(
-                        width: 36,
-                        height: 36,
+                        width: 34,
+                        height: 34,
                         decoration: BoxDecoration(
-                          color: (isAllocation 
-                                  ? Colors.orange 
-                                  : (isIncome ? AppColors.primary : AppColors.error))
-                              .withValues(alpha: 0.08),
+                          color: (isAllocation
+                                  ? AppColors.warning
+                                  : (isIncome ? AppColors.income : AppColors.expense))
+                              .withValues(alpha: 0.10),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
                           isAllocation
                               ? LucideIcons.arrowRightLeft
                               : (isIncome ? LucideIcons.arrowDownLeft : LucideIcons.shoppingBag),
-                          color: isAllocation 
-                                  ? Colors.orange 
-                                  : (isIncome ? AppColors.primary : AppColors.error),
-                          size: 16,
+                          color: isAllocation
+                              ? AppColors.warning
+                              : (isIncome ? AppColors.income : AppColors.expense),
+                          size: 15,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -772,7 +795,11 @@ class DashboardScreen extends ConsumerWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            Text(isAllocation ? 'Alokasi ke Amplop' : 'Rekening', style: theme.textTheme.labelSmall),
+                            const SizedBox(height: 1),
+                            Text(
+                              isAllocation ? 'Alokasi Dana' : (isIncome ? 'Pemasukan' : 'Pengeluaran'),
+                              style: theme.textTheme.labelSmall,
+                            ),
                           ],
                         ),
                       ),
@@ -784,13 +811,14 @@ class DashboardScreen extends ConsumerWidget {
                                 : '-${formatter.format(tx.amount.abs())}'),
                         isBlurred: isBlurred,
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          letterSpacing: -0.3,
                           color: isAllocation
-                              ? Colors.orange
+                              ? AppColors.warning
                               : (isIncome
-                                  ? AppColors.primary
-                                  : theme.colorScheme.onSurface),
+                                  ? AppColors.income
+                                  : AppColors.expense),
                         ),
                       ),
                     ],

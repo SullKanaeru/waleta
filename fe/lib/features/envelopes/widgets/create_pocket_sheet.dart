@@ -265,19 +265,19 @@ class _CreatePocketSheetState extends ConsumerState<CreatePocketSheet> {
                 runSpacing: 8,
                 children: [
                   ChoiceChip(
-                    label: const Text('Bebas'),
+                    label: Text('Bebas', style: theme.textTheme.titleSmall),
                     selected: _selectedStsMode == StsMode.lumpSum,
                     onSelected: (val) =>
                         setState(() => _selectedStsMode = StsMode.lumpSum),
                   ),
                   ChoiceChip(
-                    label: const Text('Harian'),
+                    label: Text('Harian', style: theme.textTheme.titleSmall),
                     selected: _selectedStsMode == StsMode.daily,
                     onSelected: (val) =>
                         setState(() => _selectedStsMode = StsMode.daily),
                   ),
                   ChoiceChip(
-                    label: const Text('Custom'),
+                    label: Text('Custom', style: theme.textTheme.titleSmall),
                     selected: _selectedStsMode == StsMode.customPeriod,
                     onSelected: (val) =>
                         setState(() => _selectedStsMode = StsMode.customPeriod),

@@ -159,108 +159,118 @@ class EnvelopesScreen extends ConsumerWidget {
         ref.read(envelopesProvider.notifier).refresh();
       },
       child: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       children: [
-        // Summary Card
+        // Summary Card — clean minimal
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [AppColors.primary, AppColors.primary],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.lightBorder),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Total Saldo',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Saldo',
+                    style: theme.textTheme.labelMedium,
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySoft,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Waleta',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 formatter.format(totalRealBalance),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: theme.textTheme.displayMedium,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.15),
+                  color: AppColors.lightMuted,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Safe-to-Spend Harian',
-                          style: TextStyle(color: Colors.white70, fontSize: 11),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          formatter.format(totalSts),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Safe-to-Spend',
+                            style: theme.textTheme.labelSmall,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 2),
+                          Text(
+                            formatter.format(totalSts),
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: AppColors.income,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    Container(height: 24, width: 1, color: Colors.white24),
-                    InkWell(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => const AllocateFundsSheet(),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(8),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 2,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  'Belum Dialokasikan',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 11,
+                    Container(height: 28, width: 0.5, color: AppColors.lightBorder),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const AllocateFundsSheet(),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Belum Dialokasikan',
+                                    style: theme.textTheme.labelSmall,
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              formatter.format(unallocatedDisplay),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    LucideIcons.arrowUpRight,
+                                    size: 10,
+                                    color: AppColors.primary,
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 2),
+                              Text(
+                                formatter.format(unallocatedDisplay),
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  color: unallocatedDisplay < 0
+                                      ? AppColors.error
+                                      : AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -270,13 +280,13 @@ class EnvelopesScreen extends ConsumerWidget {
             ],
           ),
         ),
-        const SizedBox(height: 24),
-        Text('Dompet', style: theme.textTheme.titleMedium),
+        const SizedBox(height: 28),
+        Text('Dompet Saya', style: theme.textTheme.titleMedium),
         const SizedBox(height: 12),
 
         ...envelopes.map(
           (env) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 10),
             child: _buildMasterCard(context, env, formatter, theme, allTxs),
           ),
         ),
@@ -300,9 +310,9 @@ class EnvelopesScreen extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: env.color.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: env.color.withValues(alpha: 0.15)),
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.lightBorder),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,31 +320,36 @@ class EnvelopesScreen extends ConsumerWidget {
             Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
-                    color: env.color.withValues(alpha: 0.12),
+                    color: env.color.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(env.iconData, color: env.color, size: 20),
+                  child: Icon(env.iconData, color: env.color, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     env.name,
-                    style: theme.textTheme.titleSmall?.copyWith(fontSize: 15),
+                    style: theme.textTheme.titleSmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Icon(
                   LucideIcons.chevronRight,
-                  size: 16,
-                  color: theme.disabledColor,
+                  size: 14,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
+            Container(
+              height: 0.5,
+              color: AppColors.lightBorder,
+            ),
+            const SizedBox(height: 14),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -342,10 +357,12 @@ class EnvelopesScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Saldo', style: theme.textTheme.labelSmall),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       formatter.format(env.allocatedAmount),
-                      style: theme.textTheme.titleSmall?.copyWith(fontSize: 15),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        letterSpacing: -0.3,
+                      ),
                     ),
                   ],
                 ),
@@ -357,10 +374,10 @@ class EnvelopesScreen extends ConsumerWidget {
                       children: [
                         Icon(
                           LucideIcons.shieldCheck,
-                          size: 12,
+                          size: 10,
                           color: env.color,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 3),
                         Text(
                           'Safe-to-Spend',
                           style: theme.textTheme.labelSmall?.copyWith(
@@ -369,7 +386,7 @@ class EnvelopesScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     _buildStsDisplay(env, formatter, theme, allTxs),
                   ],
                 ),
