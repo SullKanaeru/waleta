@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:intl/intl.dart';
 import 'dart:io';
 import '../../../core/theme/app_colors.dart';
-import '../../../models/ocr_result.dart';
 import '../../../services/ocr_service.dart';
 
 class CameraScannerScreen extends StatefulWidget {
@@ -17,7 +15,18 @@ class CameraScannerScreen extends StatefulWidget {
 class _CameraScannerScreenState extends State<CameraScannerScreen> {
   final _ocrService = OCRService();
   bool _isScanning = false;
+  bool _hasTriedCamera = false;
   String _scanStatusText = '';
+  File? _capturedImage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Directly open camera when the screen loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _runCameraCapture();
+    });
+  }
 
   @override
   void dispose() {
@@ -28,6 +37,7 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
   void _processSelectedImage(File imageFile) async {
     setState(() {
       _isScanning = true;
+      _capturedImage = imageFile;
       _scanStatusText = 'Membaca gambar struk...';
     });
 
@@ -37,7 +47,8 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
 
       if (result != null) {
         setState(() {
-          _scanStatusText = 'Data struk berhasil diekstrak!';
+          _scanStatusText =
+              'Total terdeteksi: Rp ${_formatNumber(result.totalAmount)}';
         });
         await Future.delayed(const Duration(milliseconds: 800));
         if (!mounted) return;
@@ -45,70 +56,84 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
       } else {
         setState(() {
           _isScanning = false;
+          _scanStatusText = '';
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal mengekstrak total nominal dari struk ini. Silakan coba lagi.'),
-            backgroundColor: AppColors.error,
-          ),
+        _showErrorSnackBar(
+          'Gagal mendeteksi total harga dari struk ini.\nCoba foto ulang dengan pencahayaan yang lebih baik.',
         );
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isScanning = false;
+        _scanStatusText = '';
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saat proses OCR: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      _showErrorSnackBar('Error saat proses OCR: $e');
     }
+  }
+
+  String _formatNumber(double n) {
+    final s = n.toStringAsFixed(0);
+    final result = StringBuffer();
+    int count = 0;
+    for (int i = s.length - 1; i >= 0; i--) {
+      result.write(s[i]);
+      count++;
+      if (count % 3 == 0 && i > 0) result.write('.');
+    }
+    return result.toString().split('').reversed.join();
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   void _runCameraCapture() async {
     try {
-      final file = await _ocrService.pickImage();
+      final file = await _ocrService.pickImageFromCamera();
+      if (!mounted) return;
+
+      if (file != null) {
+        _processSelectedImage(file);
+      } else {
+        // User cancelled camera — if first attempt, go back
+        if (!_hasTriedCamera) {
+          Navigator.pop(context);
+          return;
+        }
+      }
+      setState(() {
+        _hasTriedCamera = true;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _hasTriedCamera = true;
+      });
+      _showErrorSnackBar('Gagal mengakses kamera: $e');
+    }
+  }
+
+  void _runGalleryPick() async {
+    try {
+      final file = await _ocrService.pickImageFromGallery();
+      if (!mounted) return;
+
       if (file != null) {
         _processSelectedImage(file);
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal mengakses kamera: $e')),
-      );
+      _showErrorSnackBar('Gagal mengakses galeri: $e');
     }
-  }
-
-  void _simulateScan() async {
-    setState(() {
-      _isScanning = true;
-      _scanStatusText = 'Mensimulasikan pembacaan struk (Mock)...';
-    });
-    
-    // Simulate API/ML processing delay
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (!mounted) return;
-
-    final mockResult = OCRResult(
-      totalAmount: 26500.0,
-      date: DateFormat('dd/MM/yyyy').format(DateTime.now()),
-      merchantName: 'Indomaret Utama',
-      items: [
-        {'name': 'Susu Bear Brand', 'price': 10500.0},
-        {'name': 'Roti Tawar', 'price': 16000.0},
-      ],
-    );
-
-    setState(() {
-      _scanStatusText = 'Mock OCR sukses!';
-    });
-
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted) return;
-    Navigator.pop(context, mockResult);
   }
 
   @override
@@ -117,57 +142,58 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Simulated Camera View
-          Container(color: Colors.grey.shade900),
-          
-          // Scanner Overlay
-          Center(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 290,
-                  height: 380,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white24, width: 2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: _isScanning
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const CircularProgressIndicator(
-                              color: AppColors.primary,
-                              strokeWidth: 3,
+          // Background: captured image or dark placeholder
+          if (_capturedImage != null)
+            Positioned.fill(
+              child: Image.file(
+                _capturedImage!,
+                fit: BoxFit.contain,
+                color: _isScanning ? Colors.black.withValues(alpha: 0.3) : null,
+                colorBlendMode: _isScanning ? BlendMode.darken : null,
+              ),
+            )
+          else
+            Container(color: Colors.grey.shade900),
+
+          // Scanner Overlay (only visible when scanning)
+          if (_isScanning)
+            Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 290,
+                    height: 380,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.6),
+                          width: 2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(
+                          color: AppColors.primary,
+                          strokeWidth: 3,
+                        ),
+                        const SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            _scanStatusText,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 20),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Text(
-                                _scanStatusText,
-                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ).animate().fadeIn()
-                      : Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(LucideIcons.scan, color: Colors.white.withValues(alpha: 0.3), size: 48),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Posisikan Struk Belanja\ndi dalam Kotak ini',
-                                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                            textAlign: TextAlign.center,
                           ),
                         ),
-                ),
-                // Laser line moving animation during scanning
-                if (_isScanning)
+                      ],
+                    ).animate().fadeIn(),
+                  ),
+                  // Laser line animation
                   Positioned(
                     top: 10,
                     child: Container(
@@ -184,13 +210,19 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
                         ],
                       ),
                     )
-                    .animate(onPlay: (controller) => controller.repeat(reverse: true))
-                    .moveY(begin: 10, end: 360, duration: 1.5.seconds, curve: Curves.easeInOut),
+                        .animate(
+                            onPlay: (controller) =>
+                                controller.repeat(reverse: true))
+                        .moveY(
+                            begin: 10,
+                            end: 360,
+                            duration: 1.5.seconds,
+                            curve: Curves.easeInOut),
                   ),
-              ],
+                ],
+              ),
             ),
-          ),
-          
+
           // UI Controls
           SafeArea(
             child: Column(
@@ -208,41 +240,52 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
                       ),
                       const Text(
                         'Pindai Struk Belanja',
-                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(width: 48),
                     ],
                   ),
                 ),
+
                 // Bottom Bar Controls
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.transparent, Colors.black87],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
+                if (!_isScanning)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 32),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.transparent, Colors.black87],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (!_isScanning) ...[
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
                         Text(
-                          'Pilih metode input struk belanja',
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
+                          _capturedImage != null
+                              ? 'Struk tidak terdeteksi. Coba lagi?'
+                              : 'Pilih metode input struk belanja',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 13,
+                          ),
                         ),
                         const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            // Gallery/Capture Option
+                            // Gallery Option
                             _buildControlCircle(
                               icon: LucideIcons.image,
                               label: 'Galeri',
-                              onTap: _runCameraCapture, // We can reuse pickImage
+                              onTap: _runGalleryPick,
                             ),
-                            // Capture Option
+                            // Camera Capture Button
                             GestureDetector(
                               onTap: _runCameraCapture,
                               child: Container(
@@ -250,8 +293,10 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
                                 height: 76,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 4),
-                                  color: Colors.white.withValues(alpha: 0.15),
+                                  border: Border.all(
+                                      color: Colors.white, width: 4),
+                                  color:
+                                      Colors.white.withValues(alpha: 0.15),
                                 ),
                                 child: Container(
                                   margin: const EdgeInsets.all(6),
@@ -259,22 +304,22 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
                                     color: Colors.white,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: const Icon(LucideIcons.camera, color: Colors.black, size: 28),
+                                  child: const Icon(LucideIcons.camera,
+                                      color: Colors.black, size: 28),
                                 ),
                               ),
                             ),
-                            // Simulation Option
+                            // Placeholder for symmetry
                             _buildControlCircle(
-                              icon: LucideIcons.sparkles,
-                              label: 'Simulasi',
-                              onTap: _simulateScan,
+                              icon: LucideIcons.rotateCcw,
+                              label: 'Ulangi',
+                              onTap: _runCameraCapture,
                             ),
                           ],
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),

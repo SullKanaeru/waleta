@@ -7,7 +7,6 @@ import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../../activity/providers/transactions_provider.dart';
 import '../../accounts/providers/accounts_provider.dart';
-import '../../activity/widgets/assign_pocket_sheet.dart';
 import '../../activity/widgets/edit_transaction_sheet.dart';
 import '../../../core/theme/app_colors.dart';
 
