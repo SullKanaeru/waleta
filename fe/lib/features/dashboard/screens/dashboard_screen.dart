@@ -7,10 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../../activity/providers/transactions_provider.dart';
 import '../../accounts/providers/accounts_provider.dart';
-import '../../activity/screens/camera_scanner_screen.dart';
 import '../../activity/widgets/assign_pocket_sheet.dart';
 import '../../activity/widgets/edit_transaction_sheet.dart';
-import '../../../models/ocr_result.dart';
 import '../../../core/theme/app_colors.dart';
 
 import '../providers/rollover_provider.dart';
@@ -351,33 +349,6 @@ class DashboardScreen extends ConsumerWidget {
         ),
         Row(
           children: [
-            GestureDetector(
-              onTap: () async {
-                final result = await Navigator.push<OCRResult>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CameraScannerScreen(),
-                  ),
-                );
-                if (result != null && context.mounted) {
-                  _showAssignPocketSheet(context, result);
-                }
-              },
-              child: Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  LucideIcons.scan,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
             GestureDetector(
               onTap: () => _showMonthYearPicker(context, ref, selectedDate),
               child: Container(

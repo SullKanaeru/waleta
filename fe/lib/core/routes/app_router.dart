@@ -6,6 +6,8 @@ import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/envelopes/screens/envelopes_screen.dart';
 import '../../features/journal/screens/journal_screen.dart';
 import '../../features/activity/screens/cashflow_screen.dart';
+import '../../features/activity/screens/camera_scanner_screen.dart';
+import '../../features/activity/screens/calculator_screen.dart';
 import '../../features/statistics/screens/statistics_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/envelopes/screens/envelope_detail_screen.dart';
@@ -35,10 +37,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -92,16 +91,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/journal',
-        builder: (context, state) => const JournalScreen(), // Top-level route
+        builder: (context, state) => const JournalScreen(),
       ),
       GoRoute(
         path: '/accounts',
         builder: (context, state) => const AccountsScreen(),
       ),
-
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/scan',
+        builder: (context, state) => const CameraScannerScreen(),
+      ),
+      GoRoute(
+        path: '/calculator',
+        builder: (context, state) => const CalculatorScreen(),
       ),
       GoRoute(
         path: '/envelope/:id',
@@ -123,14 +129,16 @@ final routerProvider = Provider<GoRouter>((ref) {
 
           envelope ??= Envelope(
             id: id,
-            name: id == 'kebutuhan' ? 'Kebutuhan' : (id == 'keinginan' ? 'Keinginan' : 'Tabungan'),
+            name: id == 'kebutuhan'
+                ? 'Kebutuhan'
+                : (id == 'keinginan' ? 'Keinginan' : 'Tabungan'),
             allocatedAmount: 0,
             iconData: id == 'kebutuhan'
                 ? LucideIcons.shoppingBag
                 : (id == 'keinginan' ? LucideIcons.coffee : LucideIcons.wallet),
             color: id == 'kebutuhan'
                 ? AppColors.primary
-                : (id == 'keinginan' ? AppColors.accent : Colors.teal),
+                : (id == 'keinginan' ? AppColors.accentAmber : Colors.teal),
           );
 
           return EnvelopeDetailScreen(envelope: envelope);

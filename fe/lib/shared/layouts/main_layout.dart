@@ -6,7 +6,6 @@ import '../../core/utils/shake_detector.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/activity/widgets/quick_add_transaction_sheet.dart';
-import '../../features/activity/widgets/calculator_sheet.dart';
 import '../widgets/speed_dial_fab.dart';
 
 class MainLayout extends ConsumerStatefulWidget {
@@ -79,16 +78,11 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   }
 
   void _showScanSheet() {
-    context.push('/scan-receipt');
+    context.push('/scan');
   }
 
   void _showCalculatorSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const CalculatorSheet(),
-    );
+    context.push('/calculator');
   }
 
   @override
