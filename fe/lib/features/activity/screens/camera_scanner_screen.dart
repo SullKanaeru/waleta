@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:io';
@@ -12,33 +13,109 @@ class CameraScannerScreen extends StatefulWidget {
   State<CameraScannerScreen> createState() => _CameraScannerScreenState();
 }
 
-class _CameraScannerScreenState extends State<CameraScannerScreen> {
+class _CameraScannerScreenState extends State<CameraScannerScreen>
+    with WidgetsBindingObserver {
   final _ocrService = OCRService();
+
+  CameraController? _cameraController;
+  List<CameraDescription> _cameras = [];
+  bool _isCameraReady = false;
   bool _isScanning = false;
-  bool _hasTriedCamera = false;
+  bool _hasFlash = false;
+  bool _flashOn = false;
   String _scanStatusText = '';
   File? _capturedImage;
 
   @override
   void initState() {
     super.initState();
-    // Directly open camera when the screen loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _runCameraCapture();
-    });
+    WidgetsBinding.instance.addObserver(this);
+    _initCamera();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final controller = _cameraController;
+    if (controller == null || !controller.value.isInitialized) return;
+
+    if (state == AppLifecycleState.inactive) {
+      controller.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      _initCamera();
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _ocrService.dispose();
+    _cameraController?.dispose();
     super.dispose();
   }
 
-  void _processSelectedImage(File imageFile) async {
+  Future<void> _initCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras.isEmpty) {
+        if (mounted) {
+          _showErrorSnackBar('Tidak ada kamera yang tersedia di perangkat ini.');
+        }
+        return;
+      }
+
+      final backCamera = _cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => _cameras.first,
+      );
+
+      final controller = CameraController(
+        backCamera,
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+
+      _cameraController = controller;
+      await controller.initialize();
+
+      if (!mounted) return;
+
+      setState(() {
+        _isCameraReady = true;
+        _hasFlash =
+            backCamera.lensDirection == CameraLensDirection.back;
+      });
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('Gagal mengakses kamera: $e');
+      }
+    }
+  }
+
+  Future<void> _captureAndProcess() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
+    if (_isScanning) return;
+
+    try {
+      // Turn off flash before capture if not needed
+      final XFile photo = await _cameraController!.takePicture();
+      final file = File(photo.path);
+
+      await _processSelectedImage(file);
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('Gagal mengambil foto: $e');
+      }
+    }
+  }
+
+  Future<void> _processSelectedImage(File imageFile) async {
     setState(() {
       _isScanning = true;
       _capturedImage = imageFile;
-      _scanStatusText = 'Membaca gambar struk...';
+      _scanStatusText = 'Membaca struk...';
     });
 
     try {
@@ -48,28 +125,51 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
       if (result != null) {
         setState(() {
           _scanStatusText =
-              'Total terdeteksi: Rp ${_formatNumber(result.totalAmount)}';
+              'Terdeteksi: Rp ${_formatNumber(result.totalAmount)}';
         });
-        await Future.delayed(const Duration(milliseconds: 800));
+        await Future.delayed(const Duration(milliseconds: 700));
         if (!mounted) return;
         Navigator.pop(context, result);
       } else {
         setState(() {
           _isScanning = false;
+          _capturedImage = null;
           _scanStatusText = '';
         });
         _showErrorSnackBar(
-          'Gagal mendeteksi total harga dari struk ini.\nCoba foto ulang dengan pencahayaan yang lebih baik.',
+          'Gagal mendeteksi harga. Pastikan struk terlihat jelas dan cukup cahaya.',
         );
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isScanning = false;
+        _capturedImage = null;
         _scanStatusText = '';
       });
-      _showErrorSnackBar('Error saat proses OCR: $e');
+      _showErrorSnackBar('Error: $e');
     }
+  }
+
+  Future<void> _pickFromGallery() async {
+    try {
+      final file = await _ocrService.pickImageFromGallery();
+      if (file != null && mounted) {
+        await _processSelectedImage(file);
+      }
+    } catch (e) {
+      if (mounted) _showErrorSnackBar('Gagal membuka galeri: $e');
+    }
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+      return;
+    }
+    setState(() => _flashOn = !_flashOn);
+    await _cameraController!.setFlashMode(
+      _flashOn ? FlashMode.torch : FlashMode.off,
+    );
   }
 
   String _formatNumber(double n) {
@@ -96,141 +196,94 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
     );
   }
 
-  void _runCameraCapture() async {
-    try {
-      final file = await _ocrService.pickImageFromCamera();
-      if (!mounted) return;
-
-      if (file != null) {
-        _processSelectedImage(file);
-      } else {
-        // User cancelled camera — if first attempt, go back
-        if (!_hasTriedCamera) {
-          Navigator.pop(context);
-          return;
-        }
-      }
-      setState(() {
-        _hasTriedCamera = true;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _hasTriedCamera = true;
-      });
-      _showErrorSnackBar('Gagal mengakses kamera: $e');
-    }
-  }
-
-  void _runGalleryPick() async {
-    try {
-      final file = await _ocrService.pickImageFromGallery();
-      if (!mounted) return;
-
-      if (file != null) {
-        _processSelectedImage(file);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showErrorSnackBar('Gagal mengakses galeri: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          // Background: captured image or dark placeholder
-          if (_capturedImage != null)
+          // ── Camera Preview ─────────────────────────────────────
+          if (_isCameraReady && _cameraController != null && !_isScanning)
+            Positioned.fill(
+              child: CameraPreview(_cameraController!),
+            )
+          else if (_isScanning && _capturedImage != null)
             Positioned.fill(
               child: Image.file(
                 _capturedImage!,
-                fit: BoxFit.contain,
-                color: _isScanning ? Colors.black.withValues(alpha: 0.3) : null,
-                colorBlendMode: _isScanning ? BlendMode.darken : null,
+                fit: BoxFit.cover,
+                color: Colors.black.withValues(alpha: 0.4),
+                colorBlendMode: BlendMode.darken,
               ),
             )
           else
-            Container(color: Colors.grey.shade900),
+            Container(color: Colors.black),
 
-          // Scanner Overlay (only visible when scanning)
+          // ── Scanner frame overlay ───────────────────────────────
+          if (!_isScanning)
+            Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.height * 0.45,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Stack(
+                  children: [
+                    // Corner brackets
+                    ..._buildCornerBrackets(),
+                  ],
+                ),
+              ),
+            ),
+
+          // ── Scanning overlay ────────────────────────────────────
           if (_isScanning)
             Center(
-              child: Stack(
-                alignment: Alignment.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
+                  const CircularProgressIndicator(
+                    color: AppColors.primary,
+                    strokeWidth: 3,
+                  ),
+                  const SizedBox(height: 16),
                   Container(
-                    width: 290,
-                    height: 380,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.6),
-                          width: 2),
-                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const CircularProgressIndicator(
-                          color: AppColors.primary,
-                          strokeWidth: 3,
-                        ),
-                        const SizedBox(height: 20),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            _scanStatusText,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ).animate().fadeIn(),
-                  ),
-                  // Laser line animation
-                  Positioned(
-                    top: 10,
-                    child: Container(
-                      width: 270,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.6),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          ),
-                        ],
+                    child: Text(
+                      _scanStatusText,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
-                    )
-                        .animate(
-                            onPlay: (controller) =>
-                                controller.repeat(reverse: true))
-                        .moveY(
-                            begin: 10,
-                            end: 360,
-                            duration: 1.5.seconds,
-                            curve: Curves.easeInOut),
-                  ),
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                      .animate()
+                      .fadeIn(duration: 300.ms),
                 ],
               ),
             ),
 
-          // UI Controls
+          // ── UI Controls ─────────────────────────────────────────
           SafeArea(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Top Bar
+                // Top bar
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -242,20 +295,57 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
                         'Pindai Struk Belanja',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: 17,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width: 48),
+                      // Flash toggle
+                      if (_hasFlash && !_isScanning)
+                        IconButton(
+                          icon: Icon(
+                            _flashOn
+                                ? LucideIcons.zap
+                                : LucideIcons.zapOff,
+                            color: _flashOn
+                                ? AppColors.accentGold
+                                : Colors.white,
+                          ),
+                          onPressed: _toggleFlash,
+                        )
+                      else
+                        const SizedBox(width: 48),
                     ],
                   ),
                 ),
 
-                // Bottom Bar Controls
+                // Hint text below header
+                if (!_isScanning) ...[
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Arahkan kamera ke struk belanja',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+
+                const Spacer(),
+
+                // Bottom controls
                 if (!_isScanning)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 32),
+                    padding: const EdgeInsets.only(
+                        left: 32, right: 32, bottom: 40, top: 24),
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         colors: [Colors.transparent, Colors.black87],
@@ -263,59 +353,55 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
                         end: Alignment.bottomCenter,
                       ),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          _capturedImage != null
-                              ? 'Struk tidak terdeteksi. Coba lagi?'
-                              : 'Pilih metode input struk belanja',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 13,
-                          ),
+                        // Galeri
+                        _buildSideButton(
+                          icon: LucideIcons.image,
+                          label: 'Galeri',
+                          onTap: _pickFromGallery,
                         ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            // Gallery Option
-                            _buildControlCircle(
-                              icon: LucideIcons.image,
-                              label: 'Galeri',
-                              onTap: _runGalleryPick,
+
+                        // Shutter button
+                        GestureDetector(
+                          onTap: _captureAndProcess,
+                          child: Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                  color: Colors.white, width: 3.5),
+                              color: Colors.white.withValues(alpha: 0.15),
                             ),
-                            // Camera Capture Button
-                            GestureDetector(
-                              onTap: _runCameraCapture,
-                              child: Container(
-                                width: 76,
-                                height: 76,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.white, width: 4),
-                                  color:
-                                      Colors.white.withValues(alpha: 0.15),
-                                ),
-                                child: Container(
-                                  margin: const EdgeInsets.all(6),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(LucideIcons.camera,
-                                      color: Colors.black, size: 28),
-                                ),
+                            child: Container(
+                              margin: const EdgeInsets.all(5),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                LucideIcons.camera,
+                                color: Colors.black,
+                                size: 26,
                               ),
                             ),
-                            // Placeholder for symmetry
-                            _buildControlCircle(
-                              icon: LucideIcons.rotateCcw,
-                              label: 'Ulangi',
-                              onTap: _runCameraCapture,
-                            ),
-                          ],
+                          ),
+                        ),
+
+                        // Ulangi (no-op placeholder or retry)
+                        _buildSideButton(
+                          icon: LucideIcons.rotateCcw,
+                          label: 'Ulangi',
+                          onTap: () {
+                            setState(() {
+                              _capturedImage = null;
+                              _isScanning = false;
+                              _scanStatusText = '';
+                            });
+                          },
                         ),
                       ],
                     ),
@@ -328,29 +414,140 @@ class _CameraScannerScreenState extends State<CameraScannerScreen> {
     );
   }
 
-  Widget _buildControlCircle({
+  Widget _buildSideButton({
     required IconData icon,
     required String label,
     required VoidCallback onTap,
   }) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          onPressed: onTap,
-          icon: Icon(icon, color: Colors.white, size: 24),
-          style: IconButton.styleFrom(
-            backgroundColor: Colors.white.withValues(alpha: 0.15),
-            padding: const EdgeInsets.all(14),
-            shape: const CircleBorder(),
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.4),
+                width: 1,
+              ),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 11),
-        ),
-      ],
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
+
+  List<Widget> _buildCornerBrackets() {
+    const color = Colors.white;
+    const len = 24.0;
+    const thickness = 3.0;
+    const radius = 6.0;
+
+    Widget corner({
+      required Alignment alignment,
+      required bool left,
+      required bool top,
+    }) {
+      return Align(
+        alignment: alignment,
+        child: Padding(
+          padding: const EdgeInsets.all(0),
+          child: SizedBox(
+            width: len,
+            height: len,
+            child: CustomPaint(
+              painter: _CornerPainter(
+                color: color,
+                thickness: thickness,
+                radius: radius,
+                isLeft: left,
+                isTop: top,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return [
+      corner(alignment: Alignment.topLeft, left: true, top: true),
+      corner(alignment: Alignment.topRight, left: false, top: true),
+      corner(alignment: Alignment.bottomLeft, left: true, top: false),
+      corner(alignment: Alignment.bottomRight, left: false, top: false),
+    ];
+  }
+}
+
+class _CornerPainter extends CustomPainter {
+  final Color color;
+  final double thickness;
+  final double radius;
+  final bool isLeft;
+  final bool isTop;
+
+  _CornerPainter({
+    required this.color,
+    required this.thickness,
+    required this.radius,
+    required this.isLeft,
+    required this.isTop,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = thickness
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final path = Path();
+    final w = size.width;
+    final h = size.height;
+
+    if (isLeft && isTop) {
+      path.moveTo(0, h);
+      path.lineTo(0, radius);
+      path.arcToPoint(Offset(radius, 0),
+          radius: Radius.circular(radius), clockwise: true);
+      path.lineTo(w, 0);
+    } else if (!isLeft && isTop) {
+      path.moveTo(0, 0);
+      path.lineTo(w - radius, 0);
+      path.arcToPoint(Offset(w, radius),
+          radius: Radius.circular(radius), clockwise: true);
+      path.lineTo(w, h);
+    } else if (isLeft && !isTop) {
+      path.moveTo(0, 0);
+      path.lineTo(0, h - radius);
+      path.arcToPoint(Offset(radius, h),
+          radius: Radius.circular(radius), clockwise: false);
+      path.lineTo(w, h);
+    } else {
+      path.moveTo(0, h);
+      path.lineTo(w - radius, h);
+      path.arcToPoint(Offset(w, h - radius),
+          radius: Radius.circular(radius), clockwise: false);
+      path.lineTo(w, 0);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
