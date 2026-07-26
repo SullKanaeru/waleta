@@ -105,7 +105,7 @@ func (h *AccountHandler) Reconcile(c *fiber.Ctx) error {
 					// Update pocket balance to 0
 					_ = h.envRepo.UpdatePocketBalance(p.ID, p.Balance+absDiff)
 					// Update envelope total allocated (takes delta)
-					_ = h.envRepo.UpdateMasterAllocated(env.ID, absDiff)
+					_ = h.envRepo.UpdateMasterAllocated(env.ID, userID, absDiff)
 				}
 			}
 		}
