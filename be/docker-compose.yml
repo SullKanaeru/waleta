@@ -1,0 +1,18 @@
+name: waleta-be
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: waleta-db
+    environment:
+      POSTGRES_USER: waleta
+      POSTGRES_PASSWORD: waleta_password
+      POSTGRES_DB: waleta
+    ports:
+      - "5440:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

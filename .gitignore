@@ -1,0 +1,16 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project folders
+# fe and be will have their own .gitignore files
+
+# Global ignores
+*.log
+.env
