@@ -850,21 +850,6 @@ class DashboardScreen extends ConsumerWidget {
       ],
     );
   }
-
-  void _showAssignPocketSheet(BuildContext context, OCRResult result) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => AssignPocketSheet(
-        merchantName: result.merchantName.isNotEmpty
-            ? result.merchantName
-            : result.date,
-        amount: result.totalAmount,
-        source: 'OCR Scanner',
-      ),
-    );
-  }
 }
 
 class _BlurrableText extends StatelessWidget {

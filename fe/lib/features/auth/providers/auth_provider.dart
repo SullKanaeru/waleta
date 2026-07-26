@@ -25,9 +25,20 @@ class AuthState {
   final String? errorMessage;
   final UserProfile? user;
 
-  AuthState({this.isLoggedIn = false, this.isLoading = false, this.errorMessage, this.user});
+  AuthState({
+    this.isLoggedIn = false,
+    this.isLoading = false,
+    this.errorMessage,
+    this.user,
+  });
 
-  AuthState copyWith({bool? isLoggedIn, bool? isLoading, String? errorMessage, UserProfile? user, bool clearError = false}) {
+  AuthState copyWith({
+    bool? isLoggedIn,
+    bool? isLoading,
+    String? errorMessage,
+    UserProfile? user,
+    bool clearError = false,
+  }) {
     return AuthState(
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
       isLoading: isLoading ?? this.isLoading,
@@ -53,45 +64,57 @@ class AuthNotifier extends Notifier<AuthState> {
 
     state = state.copyWith(isLoading: true);
 
-    final response = await _api.get(ApiEndpoints.me);
-    if (response.success && response.data != null) {
-      final user = UserProfile.fromJson(response.data);
-      state = AuthState(isLoggedIn: true, user: user);
-    } else {
-      // Token invalid/expired, clean up
-      await _api.deleteToken();
-      state = AuthState();
+    try {
+      final response = await _api.get(ApiEndpoints.me);
+      if (response.success && response.data != null) {
+        final user = UserProfile.fromJson(response.data);
+        state = AuthState(isLoggedIn: true, isLoading: false, user: user);
+      } else {
+        // Token invalid/expired, clean up
+        await _api.deleteToken();
+        state = AuthState(isLoggedIn: false, isLoading: false);
+      }
+    } catch (_) {
+      state = state.copyWith(isLoading: false);
     }
   }
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final response = await _api.post(
-      ApiEndpoints.login,
-      body: {'email': email, 'password': password},
-      withAuth: false,
-    );
+    try {
+      final response = await _api.post(
+        ApiEndpoints.login,
+        body: {'email': email, 'password': password},
+        withAuth: false,
+      );
 
-    if (response.success && response.data != null) {
-      final token = response.data['token'] as String;
-      await _api.saveToken(token);
+      if (response.success && response.data != null) {
+        final token = response.data['token'] as String;
+        await _api.saveToken(token);
 
-      final userData = response.data['user'] as Map<String, dynamic>;
-      final user = UserProfile.fromJson(userData);
+        final userData = response.data['user'] as Map<String, dynamic>;
+        final user = UserProfile.fromJson(userData);
 
-      state = AuthState(isLoggedIn: true, user: user);
+        state = AuthState(isLoggedIn: true, isLoading: false, user: user);
 
-      // Trigger The Great Data Merge if local data has not been synced yet
-      try {
-        await ref.read(syncServiceProvider).initialMerge();
-      } catch (_) {}
+        // Trigger initial merge if available
+        try {
+          await ref.read(syncServiceProvider).initialMerge();
+        } catch (_) {}
 
-      return true;
-    } else {
+        return true;
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: response.error ?? 'Email atau kata sandi salah',
+        );
+        return false;
+      }
+    } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: response.error ?? 'Email atau kata sandi salah',
+        errorMessage: 'Gagal terhubung ke server. Periksa koneksi internet Anda.',
       );
       return false;
     }
@@ -100,19 +123,27 @@ class AuthNotifier extends Notifier<AuthState> {
   Future<bool> register(String name, String email, String password) async {
     state = state.copyWith(isLoading: true, clearError: true);
 
-    final response = await _api.post(
-      ApiEndpoints.register,
-      body: {'name': name, 'email': email, 'password': password},
-      withAuth: false,
-    );
+    try {
+      final response = await _api.post(
+        ApiEndpoints.register,
+        body: {'name': name, 'email': email, 'password': password},
+        withAuth: false,
+      );
 
-    if (response.success) {
-      // Auto-login after register
-      return await login(email, password);
-    } else {
+      if (response.success) {
+        // Auto-login after register
+        return await login(email, password);
+      } else {
+        state = state.copyWith(
+          isLoading: false,
+          errorMessage: response.error ?? 'Gagal mendaftar. Coba lagi.',
+        );
+        return false;
+      }
+    } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: response.error ?? 'Gagal mendaftar. Coba lagi.',
+        errorMessage: 'Gagal terhubung ke server. Periksa koneksi internet Anda.',
       );
       return false;
     }
