@@ -71,7 +71,7 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
     final response = await _api.get(ApiEndpoints.envelopes);
     if (response.success && response.data != null) {
       final list = response.data as List;
-      return list.map((e) {
+      final envelopesList = list.map((e) {
         final data = e as Map<String, dynamic>;
 
         final id = data['id'] ?? '';
@@ -132,6 +132,46 @@ class EnvelopesNotifier extends AsyncNotifier<List<Envelope>> {
           sources: parsedSources,
         );
       }).toList();
+
+      // Save to local storage for offline use
+      final storage = ref.read(localStorageServiceProvider);
+      
+      // Save Envelopes mapping
+      final envDataToSave = list.map((e) {
+        final d = e as Map<String, dynamic>;
+        return {
+          'id': d['id'],
+          'name': d['name'],
+          'total_allocated': d['total_allocated']
+        };
+      }).toList();
+      await storage.saveEnvelopes(envDataToSave);
+      
+      // Save Pockets mapping
+      final List<Map<String, dynamic>> allPocketsToSave = [];
+      for (var e in list) {
+        final d = e as Map<String, dynamic>;
+        if (d['pockets'] != null) {
+          final pList = d['pockets'] as List;
+          for (var p in pList) {
+            final pData = p as Map<String, dynamic>;
+            allPocketsToSave.add({
+              'id': pData['id'],
+              'master_id': d['id'],
+              'name': pData['name'],
+              'balance': pData['balance'],
+              'icon': pData['icon'],
+              'color': pData['color'],
+              'sts_mode': pData['sts_mode'],
+              'sts_period_days': pData['sts_period_days'],
+              'sts_start_date': pData['sts_start_date'],
+            });
+          }
+        }
+      }
+      await storage.savePockets(allPocketsToSave);
+
+      return envelopesList;
     }
     return [];
   }
